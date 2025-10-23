@@ -1,0 +1,68 @@
+import type { NewShopRarityConfig } from "../schema";
+
+export const shopRarityConfigsData: NewShopRarityConfig[] = [
+  {
+    id: "shop-rarity-1",
+    world: 1,
+    commonWeight: 70,
+    uncommonWeight: 25,
+    rareWeight: 5,
+    epicWeight: 0,
+    legendaryWeight: 0,
+  },
+  {
+    id: "shop-rarity-2",
+    world: 2,
+    commonWeight: 60,
+    uncommonWeight: 30,
+    rareWeight: 10,
+    epicWeight: 0,
+    legendaryWeight: 0,
+  },
+  {
+    id: "shop-rarity-3",
+    world: 3,
+    commonWeight: 40,
+    uncommonWeight: 40,
+    rareWeight: 15,
+    epicWeight: 5,
+    legendaryWeight: 0,
+  },
+  {
+    id: "shop-rarity-4",
+    world: 4,
+    commonWeight: 30,
+    uncommonWeight: 35,
+    rareWeight: 25,
+    epicWeight: 8,
+    legendaryWeight: 2,
+  },
+  {
+    id: "shop-rarity-5",
+    world: 5,
+    commonWeight: 20,
+    uncommonWeight: 30,
+    rareWeight: 30,
+    epicWeight: 15,
+    legendaryWeight: 5,
+  },
+  {
+    id: "shop-rarity-6",
+    world: 6,
+    commonWeight: 15,
+    uncommonWeight: 25,
+    rareWeight: 35,
+    epicWeight: 20,
+    legendaryWeight: 5,
+  },
+  {
+    id: "shop-rarity-7",
+    world: 7,
+    commonWeight: 10,
+    uncommonWeight: 20,
+    rareWeight: 35,
+    epicWeight: 25,
+    legendaryWeight: 10,
+  },
+];
+

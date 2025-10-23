@@ -1,55 +1,15 @@
-# Dependencies
 node_modules/
-npm-debug.log
-yarn-error.log
-
-# Git
 .git/
 .gitignore
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Build artifacts (local)
-build/
-.cache/
-dist/
-
-# Database (local)
-data/
-*.db
-*.db-shm
-*.db-wal
-
-# Environment
+README.md
 .env
 .env.local
-.env.*.local
-
-# Documentation
-README.md
-docs/
+*.md
+build/
+.cache/
+data/
+*.db
+.vscode/
+.idea/
 plans/
-
-# Testing
-coverage/
-.nyc_output/
-
-# CI/CD
-.github/
-
-# Docker
-Dockerfile
-docker-compose.yml
-.dockerignore
-
-# Misc
-.DS_Store
-Thumbs.db
-*.log
-tmp/
-temp/
-
+scripts/

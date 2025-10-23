@@ -1,6 +1,10 @@
-import { Outlet, Link, useLocation } from "@remix-run/react";
+import { json, type LoaderFunctionArgs } from "@remix-run/node";
+import { Outlet, Link, useLocation, useLoaderData } from "@remix-run/react";
 import { cn } from "~/lib/utils";
 import { Shapes, Target, Gift, Sparkles, User, BarChart3, Store } from "lucide-react";
+import { getAllPresets } from "~/db/queries/presets";
+import { getActivePreset } from "~/db/queries/active-preset";
+import { PresetSelector } from "~/components/presets/preset-selector";
 
 const configSections = [
   { href: "/config/symbols", label: "Symboles", Icon: Shapes },
@@ -12,7 +16,24 @@ const configSections = [
   { href: "/config/shop-rarities", label: "Raretés Boutique", Icon: Store },
 ];
 
+export async function loader({ request }: LoaderFunctionArgs) {
+  const [presets, activePresetData] = await Promise.all([
+    getAllPresets(),
+    getActivePreset(),
+  ]);
+
+  if (!activePresetData?.presetId) {
+    throw new Response("No active preset found", { status: 404 });
+  }
+
+  return json({
+    presets,
+    activePresetId: activePresetData.presetId,
+  });
+}
+
 export default function ConfigLayout() {
+  const { presets, activePresetId } = useLoaderData<typeof loader>();
   const location = useLocation();
 
   return (
@@ -45,7 +66,11 @@ export default function ConfigLayout() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 min-w-0">
+      <main className="flex-1 min-w-0 space-y-6">
+        {/* Preset Selector */}
+        <PresetSelector presets={presets} activePresetId={activePresetId} />
+        
+        {/* Page content */}
         <Outlet />
       </main>
     </div>

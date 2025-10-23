@@ -1,194 +1,227 @@
-# Base de Données - Architecture
+# Base de Données
 
-## Technologie
-- **SQLite** : Fichier unique `data/game.db`
-- **ORM** : Drizzle (type-safe, migrations auto)
-- **Driver** : better-sqlite3 (synchrone)
+## Technologies
 
-## Tables Principales
+- **SQLite** - Fichier unique `data/game.db`
+- **Drizzle ORM** - Type-safe avec migrations automatiques
+- **better-sqlite3** - Driver synchrone performant
+
+## Tables (12 au total)
 
 ### Configuration de Jeu
+
+#### `symbols` (9 symboles)
+```typescript
+{
+  id: string (PK)
+  name: string
+  type: "basic" | "premium" | "bonus"
+  baseWeight: number       // Probabilité apparition
+  baseValue: number        // Valeur de base
+  baseMultiplier: number   // Multiplicateur
+  icon: string            // Emoji/icône
+  color: string           // Couleur hex
+}
+```
+**Éditable** : `/config/symbols`  
+**Usage** : Génération grille, calcul gains
+
+#### `combinations` (11 types)
+```typescript
+{
+  id: string (PK)
+  name: string                // Code interne (H3, V3, etc.)
+  displayName: string         // Nom affiché
+  pattern: number[][]         // Positions dans grille 5×3
+  baseMultiplier: number      // Multiplicateur de gain
+  detectionOrder: number      // Ordre de détection (1-11)
+  isActive: boolean           // Actif/inactif
+  description: string
+}
+```
+**Éditable** : `/config/combos`  
+**Usage** : Détection combos dans grille
+
+#### `bonuses` (16 total)
+```typescript
+{
+  id: string (PK)
+  name: string
+  description: string
+  type: "starting" | "game"
+  rarity: "common" | "uncommon" | "rare" | "epic" | "legendary"
+  effects: json[]             // Array d'effets
+  baseValue: number
+  scalingPerLevel: number     // Scaling par niveau
+  maxLevel: number            // Level cap (selon rareté)
+  isDestructible: boolean
+}
+```
+**Types** : 4 de départ + 12 de partie  
+**Usage** : Récompenses, bonus équipés
+
+#### `jokers` (25+)
+```typescript
+{
+  id: string (PK)
+  name: string
+  description: string
+  rarity: "common" | "uncommon" | "rare" | "epic" | "legendary"
+  basePrice: number
+  sellValue: number
+  effects: json[]
+  tags: string[]
+}
+```
+**Usage** : Shop, effets permanents
+
+#### `characters` (3 personnages)
+```typescript
+{
+  id: string (PK)
+  name: string
+  description: string
+  passiveEffect: json         // Effet passif
+  startingBonus: string       // FK vers bonuses
+  baseStats: json             // Chance, multiplicateur
+  scalingPerLevel: json       // Scaling stats
+  isUnlocked: boolean         // Tous à true (simulateur)
+}
+```
+**Note** : Tous débloqués pour tests
 
 #### `level_configs` (21 niveaux)
 ```typescript
 {
   id: string (PK)
-  levelId: string (unique) // "1-1", "1-2", etc.
-  world, stage: number
-  baseObjective: number     // Jetons requis (Ascension 0)
-  dollarReward: number      // Dollars gagnés
-  isBoss: boolean
+  levelId: string (unique)    // "1-1", "1-2", etc.
+  world: number
+  stage: number
+  baseObjective: number       // Jetons requis (Ascension 0)
+  dollarReward: number        // $ gagnés
+  isBoss: boolean            // Stage 3 = boss
 }
 ```
-**Usage** : Objectifs et récompenses de niveau configurables
-**Ref** : `app/lib/utils/config-cache.ts`
-**Notes** : 
-- Objectifs ajustés automatiquement par ascension (×1.15/niveau)
-- Récompenses avant intérêts
-- Modifiable via UI `/config/levels`
+**Éditable** : `/config/levels`  
+**Usage** : Objectifs ajustés automatiquement par ascension  
+**Formule** : `objective = baseObjective × (1 + ascension × 0.15)`
 
 #### `shop_rarity_configs` (7 mondes)
 ```typescript
 {
   id: string (PK)
   world: number (unique)
-  commonWeight, uncommonWeight, rareWeight: number
-  epicWeight, legendaryWeight: number
+  commonWeight: number
+  uncommonWeight: number
+  rareWeight: number
+  epicWeight: number
+  legendaryWeight: number
 }
 ```
-**Usage** : Probabilités apparition jokers par rareté
-**Ref** : `app/lib/simulation/game-logic/shop-manager.ts`
-**Notes** :
-- Poids ajustés automatiquement par ascension
-- Modifiable via UI `/config/shop-rarities`
+**Éditable** : `/config/shop-rarities`  
+**Usage** : Probabilités d'apparition jokers par rareté  
+**Note** : Poids ajustés automatiquement par ascension
 
-#### `symbols` (9 symboles)
-```typescript
-{
-  id: string (PK)
-  name, type: "basic"|"premium"|"bonus"
-  baseWeight, baseValue, baseMultiplier: number
-  icon, color: string
-}
-```
-**Usage** : Génération grille, calcul gains
-**Ref** : `app/db/seed/symbols.seed.ts`
-
-#### `combinations` (11 types)
-```typescript
-{
-  id: string (PK)
-  name, displayName, description
-  pattern: json (positions)
-  baseMultiplier: number
-  detectionOrder: number  // 1-11 (ordre détection)
-  isActive: boolean
-}
-```
-**Usage** : Détection combos dans grille
-**Ref** : `combo-detector.ts`
-
-#### `bonuses` (16 total)
-```typescript
-{
-  id: string (PK)
-  name, description
-  type: "starting"|"game"
-  rarity: "common"|"uncommon"|"rare"|"epic"|"legendary"
-  effects: json[]
-  baseValue, scalingPerLevel, maxLevel: number
-  isDestructible: boolean
-}
-```
-**Types** : 4 de départ + 12 de partie
-**Ref** : `bonus-applier.ts`
-
-#### `jokers` (25+ items)
-```typescript
-{
-  id: string (PK)
-  name, description
-  rarity: enum
-  basePrice, sellValue: number
-  effects: json[]
-  tags: string[]
-}
-```
-**Usage** : Boutique, modificateurs permanents
-**Ref** : `shop-manager.ts`
-
-#### `characters` (3+ personnages)
-```typescript
-{
-  id: string (PK)
-  name, description
-  passiveEffect: json
-  startingBonus: string (FK)
-  baseStats, scalingPerLevel: json
-  unlockCondition: string
-  isUnlocked: boolean
-}
-```
-
-### Progression & Persistence
+### Progression & Historique
 
 #### `player_progress`
 ```typescript
 {
-  id: "default_player"
-  maxAscensionUnlocked: number  // 0-20+
-  totalRunsCompleted, totalRunsAttempted: number
+  id: string (PK)
+  maxAscensionUnlocked: number    // Ascension max débloquée
+  totalRunsCompleted: number
+  totalRunsAttempted: number
 }
 ```
-**Usage** : Déblocage ascensions, stats globales
+**Usage** : Progression globale du joueur
 
 #### `presets`
 ```typescript
 {
   id: string (PK)
-  name, description, tags: json
-  characterId, startingBonusId: FK
+  name: string
+  description: string
+  tags: string[]
+  characterId: string (FK)
+  startingBonusId: string (FK)
   ascension: number
-  symbolsConfig, combosConfig: json
-  simulationParams: json
+  symbolsConfig: json             // Record<string, number>
+  combosConfig: json              // Record<string, number>
+  simulationParams: json          // Config simulation
   isFavorite: boolean
 }
 ```
-**Usage** : Configs sauvegardées
+**CRUD complet** : `/presets`  
+**Usage** : Sauvegarder/restaurer configurations
 
 #### `simulation_runs`
 ```typescript
 {
   id: string (PK)
-  presetId?, characterId: FK
+  presetId: string (FK, nullable)
+  characterId: string (FK)
   ascension: number
-  mode: "auto"|"manual"
-  iterations, startLevel, endLevel
-  successRate, avgFinalLevel, avgTokens, avgDollars
-  completedFully: boolean  // Atteint endLevel
-  status: "running"|"completed"|"failed"
+  mode: "auto" | "manual"
+  iterations: number
+  startLevel: string
+  endLevel: string
+  successRate: number
+  avgFinalLevel: string
+  avgTokens: number
+  avgDollars: number
+  completedFully: boolean
+  status: "running" | "completed" | "failed"
   duration: number (ms)
 }
 ```
-**Relations** : 1-N avec `simulation_steps`
+**Usage** : Historique et analytics
 
 #### `simulation_steps`
 ```typescript
 {
   id: string (PK)
-  runId: FK
-  stepIndex, iterationIndex: number
-  stepType: "spin"|"shop"|"bonus_choice"|"levelup"
+  runId: string (FK)
+  iterationIndex: number
+  stepIndex: number
+  stepType: "spin" | "shop" | "bonus_choice" | "levelup"
   level: string
-  tokensBefore, dollarsBefore
+  tokensBefore: number
+  dollarsBefore: number
   grid: json (si spin)
   combosDetected: json
-  tokensGained, purchasedJoker, chosenBonus
-  tokensAfter, dollarsAfter
+  tokensGained: number
+  purchasedJoker: string
+  chosenBonus: string
+  tokensAfter: number
+  dollarsAfter: number
 }
 ```
-**Usage** : Historique détaillé, replay
+**Usage** : Replay détaillé, analyse fine
 
 #### `global_stats`
 ```typescript
 {
-  id: "global"
-  totalSimulations, totalRuns
+  id: "global" (singleton)
+  totalSimulations: number
+  totalRuns: number
   globalSuccessRate: number
-  symbolFrequencies, comboFrequencies: json
-  topCharacter, topBonus, topJoker: string
+  symbolFrequencies: json
+  comboFrequencies: json
+  topCharacter: string
+  topBonus: string
+  topJoker: string
 }
 ```
-**Usage** : Méta-analyse, heatmaps
+**Usage** : Dashboard, méta-analyse
 
 ## Cache de Configuration
 
 ### `configCache` (`app/lib/utils/config-cache.ts`)
 
-Pour des performances optimales, les configurations de niveaux et de boutique sont **chargées en mémoire au démarrage** :
+**Pourquoi ?** Éviter les requêtes DB pendant les simulations (perf critique).
 
 ```typescript
-// Chargement automatique côté serveur
+// Chargé automatiquement au démarrage côté serveur
 await configCache.initialize();
 
 // Utilisation
@@ -198,59 +231,55 @@ const weights = configCache.getShopRarityWeights(world);
 ```
 
 **Méthodes** :
-- `getLevelObjective(levelId, ascension)` - Objectif avec multiplicateur ascension
+- `getLevelObjective(levelId, ascension)` - Objectif avec multiplicateur
 - `getLevelReward(levelId)` - Récompense en dollars
-- `isBossLevel(levelId)` - Check si boss (depuis DB)
-- `getShopRarityWeights(world)` - Poids raretés pour un monde
-- `reload()` - Recharger depuis DB (après modification UI)
-- `updateLevelConfig(levelId)` - MAJ un seul niveau
-- `updateShopRarityConfig(world)` - MAJ un seul monde
-
-**Pourquoi ?** Éviter les requêtes DB pendant les simulations (perf critique).
+- `isBossLevel(levelId)` - Check depuis DB
+- `getShopRarityWeights(world)` - Poids raretés
+- `reload()` - Recharger après modifications UI
+- `updateLevelConfig(levelId)` - MAJ cache d'un niveau
+- `updateShopRarityConfig(world)` - MAJ cache d'un monde
 
 ## Queries Organisées
 
-Chaque table a son fichier de queries :
-
 ```
 db/queries/
-├── level-configs.ts       # getAll, getLevelConfig, updateLevelConfig
-├── shop-rarity-configs.ts # getAll, getByWorld, updateShopRarityConfig
-├── symbols.ts             # getAllSymbols, getByType
-├── combos.ts              # getActiveCombinations
-├── bonuses.ts             # getStarting/Game, byRarity
-├── jokers.ts              # getAll, byRarity
-├── characters.ts          # getUnlocked
-├── progress.ts            # get/update, unlockNextAscension
-├── simulations.ts         # CRUD runs/steps
-└── presets.ts             # CRUD presets
+├── level-configs.ts       - CRUD level configs
+├── shop-rarity-configs.ts - CRUD shop configs
+├── symbols.ts             - CRUD symboles
+├── combos.ts              - CRUD combinaisons
+├── bonuses.ts             - CRUD bonus
+├── jokers.ts              - CRUD jokers
+├── characters.ts          - CRUD personnages
+├── progress.ts            - Get/update progression
+├── presets.ts             - CRUD presets
+└── simulations.ts         - CRUD runs/steps
 ```
 
-## Migrations
+## Seeds
+
+Données initiales dans `db/seed/`:
+- `symbols.seed.ts` - 9 symboles
+- `combos.seed.ts` - 11 combinaisons
+- `bonuses.seed.ts` - 16 bonus
+- `jokers.seed.ts` - 25+ jokers
+- `characters.seed.ts` - 3 personnages (tous débloqués)
+- `level-configs.seed.ts` - 21 niveaux
+- `shop-rarity-configs.seed.ts` - 7 configs monde
+
+## Commandes
 
 ```bash
-npm run db:push      # Sync schema → DB
-npm run db:seed      # Populate données initiales
-npm run db:reset     # Wipe + reseed
-npm run db:studio    # UI Drizzle Studio
+npm run db:push      # Synchroniser schéma → DB
+npm run db:seed      # Peupler avec données initiales
+npm run db:reset     # Vider + re-seed
+npm run db:studio    # Interface Drizzle Studio
 ```
 
-## Seed Data
+## Type Safety
 
-Voir `app/db/seed/*.seed.ts` pour données initiales complètes.
+Types générés automatiquement par Drizzle :
+```typescript
+import type { Symbol, Combination, Bonus, Joker, Character } from "~/db/schema";
+```
 
-## Relations Importantes
-
-- `presets` → `characters`, `bonuses`
-- `simulation_runs` → `characters`, `presets`
-- `simulation_steps` → `simulation_runs`
-- `characters` → `bonuses` (startingBonus)
-
-## Indexation
-
-Indexes automatiques sur :
-- Primary keys
-- Foreign keys
-- `detectionOrder` (combos)
-- `createdAt` (pour tri)
-
+Chaque table a ses types `Select` (lecture) et `Insert` (création).

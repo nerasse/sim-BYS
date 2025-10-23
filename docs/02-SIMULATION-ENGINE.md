@@ -1,250 +1,264 @@
-# Moteur de Simulation - Architecture
+# Moteur de Simulation
 
-## Localisation
-`app/lib/simulation/`
+## Architecture
 
-## Principe
-Moteur **100% découplé de l'UI**, pur TypeScript, sans effets de bord (sauf logs). Testable unitairement.
+Le moteur est **100% découplé** de l'UI. Il est composé de modules purs et testables.
 
-## Structure Modulaire
-
-```
-simulation/
-├── types.ts                    # Types centralisés
-├── engine.ts                   # Orchestrateur principal
-│
-├── core/                       # Logique slot machine
-│   ├── grid-generator.ts      # Génération grille 5×3
-│   ├── combo-detector.ts      # Détection 11 combos
-│   ├── calculator.ts          # Calculs gains, XP, intérêts
-│   └── deduplication.ts       # Algo déduplication symboles
-│
-├── game-logic/                 # Règles du jeu
-│   ├── level-manager.ts       # Niveaux, objectifs
-│   ├── bonus-applier.ts       # Effets bonus
-│   ├── joker-applier.ts       # Effets jokers
-│   ├── shop-manager.ts        # Génération boutique
-│   ├── rewards.ts             # Récompenses niveau
-│   └── progression.ts         # XP, level-up
-│
-└── runners/                    # Modes de simulation
-    ├── auto-runner.ts         # IA décisions
-    ├── manual-runner.ts       # Pause aux décisions (TODO)
-    └── batch-runner.ts        # N runs pour stats
-```
-
-## Flux de Simulation
+## Types Centralisés (`types.ts`)
 
 ```typescript
-// 1. Configuration
-const config: SimulationConfig = {
-  character, startingBonus,
-  symbolsConfig, combosConfig,
-  ascension, startLevel, endLevel,
-  startingDollars, mode, iterations
+// Configuration de simulation
+SimulationConfig {
+  character, startingBonus, ascension
+  symbolWeights, comboMultipliers
+  startLevel, endLevel, startingDollars
+  iterations, mode
 }
 
-// 2. Initialisation
-const state = initializeGameState(config)
-
-// 3. Boucle principale
-while (!hasReachedEndLevel(state.currentLevel, endLevel)) {
-  // Spin phase
-  for (spin = 0; spin < spinsPerLevel; spin++) {
-    const result = executeSpin(state, config)
-    state.tokens += result.tokensGained
-  }
-  
-  // Check objectif
-  if (!isLevelObjectiveMet(tokens, level, ascension)) break
-  
-  // Rewards + shop + bonus choice
-  state = applyLevelRewards(state)
-  
-  // Next level
-  state.currentLevel = getNextLevelId(state.currentLevel)
+// État du jeu
+GameState {
+  level, tokens, dollars, spins, xp
+  bonuses[], jokers[], shopInventory
+  chance, multiplier
 }
 
-// 4. Résultat
-return SimulationResult { success, stats, history }
+// Résultat de spin
+SpinResult {
+  grid, combosDetected, tokensGained
+  newState
+}
+
+// Résultat de simulation
+SimulationResult {
+  success, finalLevel, totalTokens
+  stats, decisions, completedFully
+}
 ```
 
-## Modules Clés
+## Modules Core
 
-### 1. grid-generator.ts
-**Responsabilité** : Génération grille 5×3 selon poids + chance
+### `grid-generator.ts`
+Génération de la grille 5×3.
 
 ```typescript
 generateGrid(symbolWeights, chance) → Grid5x3
 ```
+- Weighted random basé sur poids symboles
+- Boost de chance augmente symboles premium
+- Jackpot garanti si chance = 100%
 
-- Si chance ≥ 100% → Jackpot garanti
-- Sinon : weighted random avec boost chance
-- Support wilds : `applyWildSymbols(grid, count)`
-
-**Ref** : `GRID_ROWS=3, GRID_COLS=5`
-
-### 2. combo-detector.ts
-**Responsabilité** : Détection des 11 types de combos
+### `deduplication.ts`
+Marque les symboles utilisés dans un combo.
 
 ```typescript
-detectCombos(grid, combos, values, mults) → DetectedCombo[]
+deduplicateGrid(grid, combo) → Grid5x3
 ```
+- Symbole utilisé = `null`
+- Empêche réutilisation dans autre combo
 
-**Algorithme** :
-1. Check jackpot (full grid mono-symbole) → return ALL combos
-2. Sinon : détection séquentielle selon `detectionOrder`
-3. Pour chaque combo :
-   - Générer patterns possibles (ex: H3 → toutes positions 3 horizontales)
-   - Check chaque pattern avec `availabilityGrid`
-   - Si match ET symboles disponibles → ajouter + marquer utilisés
-4. Déduplication : symboles utilisés ne peuvent plus matcher
-
-**Patterns** :
-- H3, H4, H5 : horizontales (sliding window)
-- V3, V : verticales (colonnes)
-- D3 : diagonales (6 patterns)
-- TRI : L-shapes (16 patterns)
-- OEIL : croix 5 symboles (9 patterns)
-- JACKPOT : grille complète
-- MULTI : détection multiple (metadata)
-
-### 3. calculator.ts
-**Responsabilité** : Calcul gains, XP, intérêts
+### `combo-detector.ts`
+Détecte tous les combos dans la grille.
 
 ```typescript
-calculateGains(combos, gameState) → number
-calculateInterest(dollars) → number  // +1$/5$, max +10$
-addXP(xp, level, gained) → { newXP, newLevel, leveledUp }
+detectCombos(grid, combinations, symbolData) → DetectedCombo[]
 ```
+- Ordre de détection : `detectionOrder` (1-11)
+- Déduplication après chaque combo trouvé
+- Support wilds
 
-### 4. level-manager.ts
-**Responsabilité** : Gestion niveaux et objectifs
+**Types de combos** :
+- H3, H4, H5 (horizontaux)
+- V3, V (vertical), V_BIS (2 verticaux)
+- D3 (diagonal)
+- TRI (triple paire), OEIL (4 coins)
+- JACKPOT (mono-symbole)
+- MULTI (plusieurs combos)
+
+### `calculator.ts`
+Calcul des gains finaux.
 
 ```typescript
-getLevelObjective(levelId, ascension) → number
-// baseObjective × (1 + ascension × 0.15)
-
-getNextLevelId("1-1") → "1-2"
-isBossLevel("X-3") → true
+calculateGains(combos, state) → number
 ```
+- Somme (valeur symbole × multiplicateur combo × multiplier joueur)
+- Application effets bonus/jokers
 
-**Objectifs de base** : Définis dans `constants.ts`
-- 1-1: 100, 1-2: 200, 1-3: 500 (boss, consommés)
-- 2-1: 1000, ..., 7-3: 10M
+## Modules Game Logic
 
-### 5. bonus-applier.ts
-**Responsabilité** : Appliquer effets bonus équipés
+### `level-manager.ts`
+Gestion des niveaux.
 
 ```typescript
-applyBonusEffects(bonuses: EquippedBonus[], state) → GameState
+getLevelInfo(levelId, ascension) → LevelInfo
+calculateLevelRewards(levelId, dollars, ascension) → LevelRewards
+isLevelObjectiveMet(tokens, levelId, ascension) → boolean
+consumeBossTokens(tokens, levelId, ascension) → number
 ```
+- Objectifs depuis `configCache`
+- Intérêts : +1$/5$, cap +10$
+- Boss levels consomment jetons
 
-**Effets supportés** :
-- `reduce_weight` / `increase_weight` : modifier symbolWeights
-- `increase_value` : modifier symbolValues
-- `increase_chance` : +chance (cap 90)
-- `increase_*_multiplier` : modifier multiplicateurs
-- `extra_spins`, `wild_symbols`, etc.
+### `bonus-applier.ts`
+Application des effets de bonus.
 
-**Scaling** : `baseValue + scalingPerLevel × (level-1)`
+```typescript
+applyBonusEffects(bonuses, state) → GameState
+```
+- Multiplicateur global
+- Bonus jetons
+- Effets spéciaux
 
-### 6. joker-applier.ts
-**Responsabilité** : Effets jokers (similaire bonus mais permanent)
+### `joker-applier.ts`
+Application des effets de jokers.
 
 ```typescript
 applyJokerEffects(jokers, state) → GameState
 ```
+- Multiplicateurs
+- Modifications shop
+- Effets conditionnels
 
-Effets conditionnels (ex: `multiplier_per_dollar`) appliqués à chaque phase.
-
-### 7. shop-manager.ts
-**Responsabilité** : Génération inventaire boutique
+### `shop-manager.ts`
+Génération et gestion boutique.
 
 ```typescript
 generateShopInventory(jokers, level, ascension, chance) → ShopInventory
+getRarityDistribution(level, ascension, chance) → Record<Rarity, number>
+purchaseJoker(item, dollars) → { success, newDollars, joker }
+rerollShop(inventory, jokers, level, ascension, chance) → ShopInventory
 ```
+- Raretés depuis `configCache`
+- Ajustement ascension automatique
+- Prix modifiés par ascension
 
-**Raretés** :
-- Base : selon niveau joueur (monde 1-7)
-- Modificateur ascension : -3% common, +1.5% rare, +0.1% legendary par niveau
-- Boost chance : augmente légèrement hautes raretés
-
-**Prix** : `basePrice × (1 + floor(asc/5) × 0.1)`
-
-Reroll coût : exponentiel `2 × 2^rerollCount`
-
-### 8. rewards.ts
-**Responsabilité** : Génération choix bonus, récompenses
+### `rewards.ts`
+Génération récompenses (choix bonus).
 
 ```typescript
-generateBonusChoices(bonuses, level, ascension) → [B, B, B]
+generateBonusChoices(bonuses, level, ascension) → [Bonus, Bonus, Bonus]
 ```
+- Raretés augmentées en ascension élevée
 
-3 bonus proposés selon raretés pondérées (similaire shop).
-
-### 9. progression.ts
-**Responsabilité** : XP et level-up
-
-XP requis : `100 × 1.1^(level-1)` (exponentiel)
-
-## État de Jeu (GameState)
+### `progression.ts`
+Gestion XP et levels.
 
 ```typescript
-{
-  // Progression
-  ascension, currentLevel, currentSpin, totalSpins
-  
-  // Ressources
-  tokens, dollars, playerLevel, playerXP
-  
-  // Équipement
-  equippedBonuses: EquippedBonus[]  // Max 3
-  equippedJokers: Joker[]
-  
-  // Modifiers dynamiques
-  chance, symbolWeights, symbolValues,
-  symbolMultipliers, comboMultipliers
-  
-  // Temporaire
-  extraSpinsThisLevel, permanentMultiplierBonus,
-  bonusActive, bonusSpinsRemaining, wildSymbolsCount
-}
+gainXP(state, amount) → GameState
+checkLevelUp(state) → boolean
 ```
 
-## Types Principaux
+## Engine Principal (`engine.ts`)
 
-Voir `types.ts` pour :
-- `SimulationConfig` : input simulation
-- `GameState` : état runtime
-- `SpinResult` : résultat 1 spin
-- `DetectedCombo` : combo trouvé
-- `SimulationResult` : output complet
-- `SimulationStep` : historique
-- `ShopInventory` : boutique
+Orchestrateur du jeu.
 
-## Constants
+```typescript
+initializeGameState(config) → GameState
+executeSpin(state, config) → SpinResult
+executeShopPhase(state, decisions) → GameState
+executeLevelUp(state) → GameState
+```
 
-Voir `lib/utils/constants.ts` :
-- Objectifs par niveau
-- Récompenses $
-- Raretés boutique par monde
-- Caps (chance=90, max interest=10$)
-- Paliers level-up bonus
+**Game Loop** :
+```
+1. Init state
+2. Pour chaque niveau:
+   a. N spins (généralement 5)
+   b. Shop phase
+   c. Check objectif
+   d. Level up si OK
+   e. Boss consomme jetons si stage 3
+3. Retour résultat final
+```
 
-## Utilitaires
+## Runners
 
-`lib/utils/probability.ts` :
-- `weightedRandom` : sélection pondérée
-- `normalizeWeights` : sum = 100
-- `randomChance` : roll 0-100
-- `shuffle`, `randomSample`
+### `auto-runner.ts`
+Mode automatique (IA simple).
 
-## Extensions Futures
+```typescript
+runAutoSimulation(config) → SimulationResult
+```
+- Décisions automatiques
+- Achat jokers si budget
+- Progression jusqu'à échec ou fin
 
-Pour ajouter features :
-1. **Nouveau bonus/joker** : ajouter effet dans `*-applier.ts`
-2. **Nouveau combo** : ajouter pattern dans `combo-detector.ts`
-3. **Mode manual** : implémenter `manual-runner.ts` avec callbacks
-4. **Visualisation live** : stream `SimulationStep` vers UI
+### Batch Runner (futur)
+Multiple runs en parallèle pour stats.
 
+## Constantes (`constants.ts`)
+
+```typescript
+GRID_ROWS = 3
+GRID_COLS = 5
+DEFAULT_SPINS_PER_LEVEL = 5
+MAX_EQUIPPED_BONUSES = 3
+MAX_CHANCE = 90
+JACKPOT_CHANCE = 100
+SHOP_SLOTS = 4
+INTEREST_RATE_PER_5_DOLLARS = 1
+MAX_INTEREST = 10
+```
+
+**Note** : Objectifs niveaux et raretés boutique sont en DB, pas hardcodés.
+
+## Helpers
+
+### `probability.ts`
+```typescript
+weightedRandom(weights) → string
+randomSample(array, count) → T[]
+normalizeWeights(weights) → Record<string, number>
+```
+
+### `config-cache.ts`
+Cache mémoire des configs.
+```typescript
+configCache.getLevelObjective(levelId, ascension)
+configCache.getLevelReward(levelId)
+configCache.getShopRarityWeights(world)
+```
+
+## Caractéristiques
+
+### Pure Functions
+Pas d'effets de bord, testables facilement.
+
+### Type Safety
+Tous les types explicites, pas de `any`.
+
+### Modularité
+14 modules indépendants, chacun avec responsabilité claire.
+
+### Performance
+- Simulations rapides (pure JS)
+- Pas de requêtes DB pendant simulation (cache)
+- Algorithmes optimisés
+
+## Utilisation
+
+```typescript
+import { runAutoSimulation } from "~/lib/simulation/runners/auto-runner";
+import type { SimulationConfig } from "~/lib/simulation/types";
+
+const config: SimulationConfig = {
+  character: { ... },
+  symbolWeights: { "10": 10, "J": 8, ... },
+  comboMultipliers: { "H3": 1.5, ... },
+  ascension: 10,
+  startLevel: "1-1",
+  endLevel: "7-3",
+  // ...
+};
+
+const result = await runAutoSimulation(config);
+console.log(result.success, result.finalLevel, result.stats);
+```
+
+## Extension
+
+Pour ajouter une fonctionnalité :
+1. Définir types dans `types.ts`
+2. Créer module dans `core/` ou `game-logic/`
+3. Intégrer dans `engine.ts`
+4. Tester indépendamment
+5. Utiliser dans runner

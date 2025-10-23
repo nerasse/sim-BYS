@@ -127,33 +127,143 @@ export const playerProgress = sqliteTable("player_progress", {
     .default(sql`(unixepoch())`),
 });
 
-// Presets
+// Presets (métadonnées uniquement)
 export const presets = sqliteTable("presets", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
   tags: text("tags", { mode: "json" }).$type<string[]>().notNull(),
-  characterId: text("character_id").references(() => characters.id),
-  startingBonusId: text("starting_bonus_id").references(() => bonuses.id),
-  ascension: integer("ascension").notNull().default(0),
-  symbolsConfig: text("symbols_config", { mode: "json" })
-    .$type<Record<string, number>>()
-    .notNull(),
-  combosConfig: text("combos_config", { mode: "json" })
-    .$type<Record<string, number>>()
-    .notNull(),
-  simulationParams: text("simulation_params", { mode: "json" })
-    .$type<{
-      startLevel: string;
-      endLevel: string;
-      startingDollars: number;
-      mode: string;
-      iterations: number;
-    }>()
-    .notNull(),
   isFavorite: integer("is_favorite", { mode: "boolean" })
     .notNull()
     .default(false),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Preset actif (une seule ligne dans cette table)
+export const activePreset = sqliteTable("active_preset", {
+  id: integer("id").primaryKey().default(1),
+  presetId: text("preset_id")
+    .references(() => presets.id)
+    .notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Configuration des symboles par preset
+export const presetSymbolConfigs = sqliteTable("preset_symbol_configs", {
+  id: text("id").primaryKey(),
+  presetId: text("preset_id")
+    .references(() => presets.id, { onDelete: "cascade" })
+    .notNull(),
+  symbolId: text("symbol_id")
+    .references(() => symbols.id)
+    .notNull(),
+  weight: real("weight").notNull(),
+  value: integer("value").notNull(),
+  multiplier: real("multiplier").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Configuration des combos par preset
+export const presetComboConfigs = sqliteTable("preset_combo_configs", {
+  id: text("id").primaryKey(),
+  presetId: text("preset_id")
+    .references(() => presets.id, { onDelete: "cascade" })
+    .notNull(),
+  comboId: text("combo_id")
+    .references(() => combinations.id)
+    .notNull(),
+  multiplier: real("multiplier").notNull(),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Configuration des niveaux par preset
+export const presetLevelConfigs = sqliteTable("preset_level_configs", {
+  id: text("id").primaryKey(),
+  presetId: text("preset_id")
+    .references(() => presets.id, { onDelete: "cascade" })
+    .notNull(),
+  levelId: text("level_id").notNull(), // "1-1", "1-2", etc.
+  world: integer("world").notNull(),
+  stage: integer("stage").notNull(),
+  baseObjective: integer("base_objective").notNull(),
+  dollarReward: integer("dollar_reward").notNull(),
+  isBoss: integer("is_boss", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Configuration des rarités shop par preset
+export const presetShopRarityConfigs = sqliteTable("preset_shop_rarity_configs", {
+  id: text("id").primaryKey(),
+  presetId: text("preset_id")
+    .references(() => presets.id, { onDelete: "cascade" })
+    .notNull(),
+  world: integer("world").notNull(),
+  commonWeight: real("common_weight").notNull().default(70),
+  uncommonWeight: real("uncommon_weight").notNull().default(25),
+  rareWeight: real("rare_weight").notNull().default(5),
+  epicWeight: real("epic_weight").notNull().default(0),
+  legendaryWeight: real("legendary_weight").notNull().default(0),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Disponibilité des bonus par niveau dans un preset
+export const presetBonusAvailability = sqliteTable("preset_bonus_availability", {
+  id: text("id").primaryKey(),
+  presetId: text("preset_id")
+    .references(() => presets.id, { onDelete: "cascade" })
+    .notNull(),
+  bonusId: text("bonus_id")
+    .references(() => bonuses.id)
+    .notNull(),
+  availableFrom: text("available_from").notNull(), // "1-1", "1-3", etc.
+  availableUntil: text("available_until"), // null = toujours disponible après availableFrom
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Disponibilité des jokers par niveau dans un preset
+export const presetJokerAvailability = sqliteTable("preset_joker_availability", {
+  id: text("id").primaryKey(),
+  presetId: text("preset_id")
+    .references(() => presets.id, { onDelete: "cascade" })
+    .notNull(),
+  jokerId: text("joker_id")
+    .references(() => jokers.id)
+    .notNull(),
+  availableFrom: text("available_from").notNull(), // "1-1", "1-2", etc.
+  availableUntil: text("available_until"), // null = toujours disponible après availableFrom
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
@@ -295,6 +405,27 @@ export type NewPlayerProgress = typeof playerProgress.$inferInsert;
 
 export type Preset = typeof presets.$inferSelect;
 export type NewPreset = typeof presets.$inferInsert;
+
+export type ActivePreset = typeof activePreset.$inferSelect;
+export type NewActivePreset = typeof activePreset.$inferInsert;
+
+export type PresetSymbolConfig = typeof presetSymbolConfigs.$inferSelect;
+export type NewPresetSymbolConfig = typeof presetSymbolConfigs.$inferInsert;
+
+export type PresetComboConfig = typeof presetComboConfigs.$inferSelect;
+export type NewPresetComboConfig = typeof presetComboConfigs.$inferInsert;
+
+export type PresetLevelConfig = typeof presetLevelConfigs.$inferSelect;
+export type NewPresetLevelConfig = typeof presetLevelConfigs.$inferInsert;
+
+export type PresetShopRarityConfig = typeof presetShopRarityConfigs.$inferSelect;
+export type NewPresetShopRarityConfig = typeof presetShopRarityConfigs.$inferInsert;
+
+export type PresetBonusAvailability = typeof presetBonusAvailability.$inferSelect;
+export type NewPresetBonusAvailability = typeof presetBonusAvailability.$inferInsert;
+
+export type PresetJokerAvailability = typeof presetJokerAvailability.$inferSelect;
+export type NewPresetJokerAvailability = typeof presetJokerAvailability.$inferInsert;
 
 export type SimulationRun = typeof simulationRuns.$inferSelect;
 export type NewSimulationRun = typeof simulationRuns.$inferInsert;

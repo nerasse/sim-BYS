@@ -1,90 +1,114 @@
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
-import { getAllCombinations } from "~/db/queries/combos";
+import { useLoaderData, Form } from "@remix-run/react";
+import { getActivePresetId } from "~/db/queries/active-preset";
+import { getPresetComboConfigs, upsertPresetComboConfig } from "~/db/queries/preset-combo-configs";
 import { PageHeader } from "~/components/layout/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
-
-export const meta: MetaFunction = () => {
-  return [
-    { title: "Combinaisons - Configuration - Simulateur BYS" },
-    { name: "description", content: "Configuration des 11 types de combinaisons" },
-  ];
-};
+import { Input } from "~/components/ui/input";
+import { Button } from "~/components/ui/button";
+import { Target } from "lucide-react";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const combinations = await getAllCombinations();
-  return json({ combinations });
+  const activePresetId = await getActivePresetId();
+  
+  if (!activePresetId) {
+    throw new Response("No active preset", { status: 404 });
+  }
+
+  const comboConfigs = await getPresetComboConfigs(activePresetId);
+  
+  return json({ comboConfigs });
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const activePresetId = await getActivePresetId();
+  
+  if (!activePresetId) {
+    return json({ error: "No active preset" }, { status: 404 });
+  }
+
+  const formData = await request.formData();
+  const comboId = formData.get("comboId") as string;
+  const multiplier = parseFloat(formData.get("multiplier") as string);
+  const isActive = formData.get("isActive") === "true";
+
+  if (comboId && !isNaN(multiplier)) {
+    await upsertPresetComboConfig(activePresetId, comboId, {
+      multiplier,
+      isActive,
+    });
+  }
+
+  return json({ success: true });
 }
 
 export default function ConfigCombos() {
-  const { combinations } = useLoaderData<typeof loader>();
+  const { comboConfigs } = useLoaderData<typeof loader>();
 
   return (
     <div>
       <PageHeader
-        title="Combinaisons"
-        description="Configuration des 11 types de combinaisons gagnantes"
+        title={
+          <div className="flex items-center gap-3">
+            <Target className="w-8 h-8" />
+            Combinaisons
+          </div>
+        }
+        description="Configuration des combinaisons du preset actif - Modifiez multiplicateurs et activez/désactivez"
       />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {combinations.map((combo) => (
-          <Card key={combo.id} className={!combo.isActive ? "opacity-50" : ""}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>{combo.displayName}</CardTitle>
-                <Badge variant={combo.isActive ? "default" : "secondary"}>
-                  {combo.isActive ? "Actif" : "Inactif"}
-                </Badge>
-              </div>
-              <CardDescription>{combo.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Multiplicateur de base:</span>
-                  <span className="text-lg font-bold text-primary">×{combo.baseMultiplier}</span>
+        {comboConfigs.map(({ config, combo }) => {
+          if (!combo) return null;
+          
+          return (
+            <Card key={config.id} className={!config.isActive ? "opacity-60" : ""}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>{combo.displayName}</CardTitle>
+                  <Badge variant={config.isActive ? "default" : "secondary"}>
+                    {config.isActive ? "Actif" : "Inactif"}
+                  </Badge>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Ordre de détection:</span>
-                  <Badge variant="outline">{combo.detectionOrder}</Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">ID:</span>
-                  <code className="text-xs bg-muted px-2 py-1 rounded">{combo.id}</code>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                <CardDescription>{combo.description}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Form method="post" className="space-y-4">
+                  <input type="hidden" name="comboId" value={combo.id} />
+                  
+                  <div>
+                    <label className="text-sm font-medium">Multiplicateur de Base</label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      name="multiplier"
+                      defaultValue={config.multiplier}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      name="isActive"
+                      value="true"
+                      defaultChecked={config.isActive}
+                      className="w-4 h-4"
+                    />
+                    <label className="text-sm font-medium">Combinaison active</label>
+                  </div>
+                  
+                  <Button type="submit" className="w-full" size="sm">
+                    Sauvegarder
+                  </Button>
+                </Form>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
-
-      <Card className="mt-8">
-        <CardHeader>
-          <CardTitle>🎯 Ordre de Détection</CardTitle>
-          <CardDescription>
-            Les combos sont détectés dans cet ordre, avec déduplication des symboles
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ol className="space-y-2">
-            {combinations
-              .sort((a, b) => a.detectionOrder - b.detectionOrder)
-              .map((combo) => (
-                <li key={combo.id} className="flex items-center gap-3">
-                  <span className="text-muted-foreground font-mono text-sm w-8">
-                    {combo.detectionOrder}.
-                  </span>
-                  <span className="font-medium">{combo.displayName}</span>
-                  <span className="text-sm text-muted-foreground">({combo.id})</span>
-                  <span className="ml-auto text-primary font-medium">×{combo.baseMultiplier}</span>
-                </li>
-              ))}
-          </ol>
-        </CardContent>
-      </Card>
     </div>
   );
 }
-

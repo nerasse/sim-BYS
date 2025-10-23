@@ -40,8 +40,8 @@ export const charactersData: NewCharacter[] = [
       chance: 0,
       multiplier: 0.02,
     },
-    unlockCondition: "Complete 5 runs",
-    isUnlocked: false,
+    unlockCondition: "default", // Débloqué pour simulateur
+    isUnlocked: true,
   },
   {
     id: "survivor",
@@ -60,8 +60,8 @@ export const charactersData: NewCharacter[] = [
       chance: 0.5,
       multiplier: 0,
     },
-    unlockCondition: "Reach level 5-3",
-    isUnlocked: false,
+    unlockCondition: "default", // Débloqué pour simulateur
+    isUnlocked: true,
   },
 ];
 

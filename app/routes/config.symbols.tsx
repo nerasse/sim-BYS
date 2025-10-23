@@ -1,7 +1,8 @@
-import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
+import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
-import { getAllSymbols } from "~/db/queries/symbols";
+import { useLoaderData, Form } from "@remix-run/react";
+import { getActivePresetId } from "~/db/queries/active-preset";
+import { getPresetSymbolConfigs, upsertPresetSymbolConfig } from "~/db/queries/preset-symbol-configs";
 import { PageHeader } from "~/components/layout/page-header";
 import {
   Card,
@@ -11,34 +12,63 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
-
-export const meta: MetaFunction = () => {
-  return [
-    { title: "Symboles - Configuration - Simulateur BYS" },
-    {
-      name: "description",
-      content: "Configuration des 9 symboles du jeu",
-    },
-  ];
-};
+import { Input } from "~/components/ui/input";
+import { Button } from "~/components/ui/button";
+import { Shapes } from "lucide-react";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const symbols = await getAllSymbols();
-  return json({ symbols });
+  const activePresetId = await getActivePresetId();
+  
+  if (!activePresetId) {
+    throw new Response("No active preset", { status: 404 });
+  }
+
+  const symbolConfigs = await getPresetSymbolConfigs(activePresetId);
+  
+  return json({ symbolConfigs });
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const activePresetId = await getActivePresetId();
+  
+  if (!activePresetId) {
+    return json({ error: "No active preset" }, { status: 404 });
+  }
+
+  const formData = await request.formData();
+  const symbolId = formData.get("symbolId") as string;
+  const weight = parseFloat(formData.get("weight") as string);
+  const value = parseInt(formData.get("value") as string);
+  const multiplier = parseFloat(formData.get("multiplier") as string);
+
+  if (symbolId && !isNaN(weight) && !isNaN(value) && !isNaN(multiplier)) {
+    await upsertPresetSymbolConfig(activePresetId, symbolId, {
+      weight,
+      value,
+      multiplier,
+    });
+  }
+
+  return json({ success: true });
 }
 
 export default function ConfigSymbols() {
-  const { symbols } = useLoaderData<typeof loader>();
+  const { symbolConfigs } = useLoaderData<typeof loader>();
 
-  const basicSymbols = symbols.filter((s) => s.type === "basic");
-  const premiumSymbols = symbols.filter((s) => s.type === "premium");
-  const bonusSymbols = symbols.filter((s) => s.type === "bonus");
+  const basicSymbols = symbolConfigs.filter((s) => s.symbol?.type === "basic");
+  const premiumSymbols = symbolConfigs.filter((s) => s.symbol?.type === "premium");
+  const bonusSymbols = symbolConfigs.filter((s) => s.symbol?.type === "bonus");
 
   return (
     <div>
       <PageHeader
-        title="Symboles"
-        description="Configuration des 9 symboles du jeu"
+        title={
+          <div className="flex items-center gap-3">
+            <Shapes className="w-8 h-8" />
+            Symboles
+          </div>
+        }
+        description="Configuration des symboles du preset actif - Modifiez tous les paramètres"
       />
 
       <div className="space-y-8">
@@ -51,114 +81,11 @@ export default function ConfigSymbols() {
             </Badge>
           </h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {basicSymbols.map((symbol) => (
-              <Card key={symbol.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <span className="text-4xl">{symbol.icon}</span>
-                      <span>{symbol.name}</span>
-                    </CardTitle>
-                    <Badge
-                      style={{
-                        backgroundColor: symbol.color || undefined,
-                      }}
-                    >
-                      {symbol.type}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Poids:</span>
-                      <span className="font-medium">{symbol.baseWeight}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Valeur:</span>
-                      <span className="font-medium">{symbol.baseValue}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Multiplicateur:
-                      </span>
-                      <span className="font-medium">
-                        ×{symbol.baseMultiplier}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Premium Symbols */}
-        <div>
-          <h2 className="text-2xl font-bold mb-4">
-            Symboles Premium
-            <Badge variant="secondary" className="ml-3">
-              {premiumSymbols.length}
-            </Badge>
-          </h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {premiumSymbols.map((symbol) => (
-              <Card key={symbol.id} className="border-primary/50">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <span className="text-4xl">{symbol.icon}</span>
-                      <span>{symbol.name}</span>
-                    </CardTitle>
-                    <Badge
-                      variant="default"
-                      style={{
-                        backgroundColor: symbol.color || undefined,
-                      }}
-                    >
-                      {symbol.type}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Poids:</span>
-                      <span className="font-medium">{symbol.baseWeight}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Valeur:</span>
-                      <span className="font-medium text-primary">
-                        {symbol.baseValue}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">
-                        Multiplicateur:
-                      </span>
-                      <span className="font-medium text-primary">
-                        ×{symbol.baseMultiplier}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Bonus Symbols */}
-        {bonusSymbols.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold mb-4">
-              Symboles Bonus
-              <Badge variant="secondary" className="ml-3">
-                {bonusSymbols.length}
-              </Badge>
-            </h2>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {bonusSymbols.map((symbol) => (
-                <Card key={symbol.id} className="border-green-500/50">
+            {basicSymbols.map(({ config, symbol }) => {
+              if (!symbol) return null;
+              
+              return (
+                <Card key={config.id}>
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="flex items-center gap-2">
@@ -175,63 +102,210 @@ export default function ConfigSymbols() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Symbole spécial qui déclenche le mode bonus
-                    </p>
+                    <Form method="post" className="space-y-3">
+                      <input type="hidden" name="symbolId" value={symbol.id} />
+                      
+                      <div>
+                        <label className="text-sm font-medium">Poids (Probabilité)</label>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          name="weight"
+                          defaultValue={config.weight}
+                          className="mt-1"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium">Valeur de Base</label>
+                        <Input
+                          type="number"
+                          name="value"
+                          defaultValue={config.value}
+                          className="mt-1"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium">Multiplicateur</label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          name="multiplier"
+                          defaultValue={config.multiplier}
+                          className="mt-1"
+                        />
+                      </div>
+                      
+                      <Button type="submit" className="w-full" size="sm">
+                        Sauvegarder
+                      </Button>
+                    </Form>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+              );
+            })}
           </div>
-        )}
+        </div>
 
-        {/* Statistics Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>📊 Distribution des Poids</CardTitle>
-            <CardDescription>
-              Probabilité d'apparition de chaque symbole
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {symbols.map((symbol) => {
-                const totalWeight = symbols.reduce(
-                  (sum, s) => sum + s.baseWeight,
-                  0
-                );
-                const percentage = (
-                  (symbol.baseWeight / totalWeight) *
-                  100
-                ).toFixed(1);
-
-                return (
-                  <div key={symbol.id}>
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <span>{symbol.icon}</span>
-                        <span className="text-sm font-medium">
-                          {symbol.name}
-                        </span>
+        {/* Premium Symbols */}
+        <div>
+          <h2 className="text-2xl font-bold mb-4">
+            Symboles Premium
+            <Badge variant="secondary" className="ml-3">
+              {premiumSymbols.length}
+            </Badge>
+          </h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {premiumSymbols.map(({ config, symbol }) => {
+              if (!symbol) return null;
+              
+              return (
+                <Card key={config.id} className="border-primary/50">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <span className="text-4xl">{symbol.icon}</span>
+                        <span>{symbol.name}</span>
+                      </CardTitle>
+                      <Badge
+                        variant="default"
+                        style={{
+                          backgroundColor: symbol.color || undefined,
+                        }}
+                      >
+                        {symbol.type}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <Form method="post" className="space-y-3">
+                      <input type="hidden" name="symbolId" value={symbol.id} />
+                      
+                      <div>
+                        <label className="text-sm font-medium">Poids (Probabilité)</label>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          name="weight"
+                          defaultValue={config.weight}
+                          className="mt-1"
+                        />
                       </div>
-                      <span className="text-sm text-muted-foreground">
-                        {percentage}%
-                      </span>
-                    </div>
-                    <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary"
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                  </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium">Valeur de Base</label>
+                        <Input
+                          type="number"
+                          name="value"
+                          defaultValue={config.value}
+                          className="mt-1"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium">Multiplicateur</label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          name="multiplier"
+                          defaultValue={config.multiplier}
+                          className="mt-1"
+                        />
+                      </div>
+                      
+                      <Button type="submit" className="w-full" size="sm">
+                        Sauvegarder
+                      </Button>
+                    </Form>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Bonus Symbols */}
+        {bonusSymbols.length > 0 && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">
+              Symboles Bonus
+              <Badge variant="secondary" className="ml-3">
+                {bonusSymbols.length}
+              </Badge>
+            </h2>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {bonusSymbols.map(({ config, symbol }) => {
+                if (!symbol) return null;
+                
+                return (
+                  <Card key={config.id} className="border-green-500/50">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2">
+                          <span className="text-4xl">{symbol.icon}</span>
+                          <span>{symbol.name}</span>
+                        </CardTitle>
+                        <Badge
+                          style={{
+                            backgroundColor: symbol.color || undefined,
+                          }}
+                        >
+                          {symbol.type}
+                        </Badge>
+                      </div>
+                      <CardDescription>
+                        Symbole spécial qui déclenche le mode bonus
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Form method="post" className="space-y-3">
+                        <input type="hidden" name="symbolId" value={symbol.id} />
+                        
+                        <div>
+                          <label className="text-sm font-medium">Poids (Probabilité)</label>
+                          <Input
+                            type="number"
+                            step="0.1"
+                            name="weight"
+                            defaultValue={config.weight}
+                            className="mt-1"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="text-sm font-medium">Valeur de Base</label>
+                          <Input
+                            type="number"
+                            name="value"
+                            defaultValue={config.value}
+                            className="mt-1"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="text-sm font-medium">Multiplicateur</label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            name="multiplier"
+                            defaultValue={config.multiplier}
+                            className="mt-1"
+                          />
+                        </div>
+                        
+                        <Button type="submit" className="w-full" size="sm">
+                          Sauvegarder
+                        </Button>
+                      </Form>
+                    </CardContent>
+                  </Card>
                 );
               })}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        )}
       </div>
     </div>
   );
 }
-

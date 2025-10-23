@@ -2,296 +2,280 @@
 
 ## Setup Initial
 
+### Prérequis
+- Node.js 20+
+- npm ou pnpm
+
+### Installation
 ```bash
-# Clone & install
 git clone <repo>
 cd sim-BYS
 npm install
+```
 
-# Database
-npm run db:push      # Sync schema
-npm run db:seed      # Populate data
+### Base de Données
+```bash
+npm run db:push      # Créer tables
+npm run db:seed      # Peupler données
+```
 
-# Dev server
-npm run dev          # → http://localhost:3000
+### Lancer l'app
+```bash
+npm run dev          # Dev server → http://localhost:3000
 ```
 
 ## Scripts npm
 
+### Développement
 ```bash
-# Development
-npm run dev          # Dev server (hot reload)
-npm run build        # Production build
-npm run start        # Production server
-npm run typecheck    # TypeScript check
-
-# Database
-npm run db:push      # Push schema changes
-npm run db:seed      # Reseed data
-npm run db:reset     # Wipe + recreate + seed
-npm run db:studio    # Drizzle Studio UI
-npm run db:generate  # Generate migration files
-
-# Code Quality
-npm run lint         # ESLint
-npm run format       # Prettier
+npm run dev          # Remix dev server (Vite)
+npm run typecheck    # Vérification TypeScript
 ```
 
-## Structure de Développement
-
-### Ajouter un Symbole/Bonus/Joker
-
-1. Éditer `app/db/seed/*.seed.ts`
-2. Ajouter l'objet dans l'array
-3. `npm run db:reset`
-
-**Exemple** :
-```typescript
-// bonuses.seed.ts
-{
-  id: "new_bonus",
-  name: "Nouveau Bonus",
-  description: "Description",
-  type: "game",
-  rarity: "rare",
-  effects: [{ type: "increase_chance", value: 5 }],
-  baseValue: 5,
-  scalingPerLevel: 1,
-  maxLevel: 30,
-  obtainCondition: "boss_or_levelup"
-}
+### Base de Données
+```bash
+npm run db:push         # Sync schéma → SQLite
+npm run db:seed         # Seed données initiales
+npm run db:reset        # Reset complet (drop + seed)
+npm run db:studio       # UI Drizzle Studio
 ```
 
-### Ajouter un Effet Bonus/Joker
-
-1. Définir le type d'effet dans le seed
-2. Implémenter dans `lib/simulation/game-logic/bonus-applier.ts` ou `joker-applier.ts`
-
-**Exemple** :
-```typescript
-// bonus-applier.ts
-case "new_effect_type":
-  state.someProperty += value
-  break
+### Production
+```bash
+npm run build        # Build app
+npm run start        # Serveur production
 ```
 
-### Modifier Logique Simulation
+## Structure Projet
 
-Fichiers concernés : `lib/simulation/*`
-
-**Workflow** :
-1. Identifier le module concerné (ex: `calculator.ts` pour calculs)
-2. Modifier la fonction
-3. TypeScript catch les erreurs
-4. Tester via simulateur UI
-
-**Exemple** : Changer formule gains
-```typescript
-// calculator.ts
-export function calculateGains(combos, state) {
-  // Nouvelle formule ici
-  return totalGain
-}
 ```
-
-### Ajouter une Page
-
-1. Créer `app/routes/nom.tsx`
-2. Définir `loader` (data) et/ou `action` (mutations)
-3. Exporter composant React
-
-**Template** :
-```typescript
-import type { LoaderFunctionArgs } from "@remix-run/node"
-import { json } from "@remix-run/node"
-import { useLoaderData } from "@remix-run/react"
-import { PageHeader } from "~/components/layout/page-header"
-
-export async function loader({ request }: LoaderFunctionArgs) {
-  // Fetch data
-  return json({ data })
-}
-
-export default function MyPage() {
-  const { data } = useLoaderData<typeof loader>()
-  
-  return (
-    <div>
-      <PageHeader title="Mon Titre" />
-      {/* Content */}
-    </div>
-  )
-}
-```
-
-### Ajouter un Composant UI
-
-1. Créer `app/components/domain/nom.tsx`
-2. Export + import dans route
-
-**Conventions** :
-- Props typées (interface)
-- Utiliser composants shadcn/ui
-- Styling Tailwind
-
-```typescript
-interface MyComponentProps {
-  title: string
-  onClick?: () => void
-}
-
-export function MyComponent({ title, onClick }: MyComponentProps) {
-  return (
-    <Card onClick={onClick}>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-    </Card>
-  )
-}
-```
-
-### Modifier le Schéma DB
-
-1. Éditer `app/db/schema.ts`
-2. `npm run db:push` (applique changements)
-3. Si données existantes : migration manuelle ou reset
-
-**Exemple** : Ajouter colonne
-```typescript
-export const myTable = sqliteTable("my_table", {
-  // ...
-  newColumn: text("new_column")
-})
+sim-BYS/
+├── app/
+│   ├── routes/              # Pages Remix (file-based routing)
+│   │   ├── _index.tsx       # Dashboard
+│   │   ├── config.tsx       # Layout config
+│   │   ├── config.*.tsx     # Pages config
+│   │   ├── simulator.tsx    # Simulateur
+│   │   ├── stats.tsx        # Stats
+│   │   └── presets.tsx      # Presets
+│   │
+│   ├── components/
+│   │   ├── ui/              # shadcn/ui components
+│   │   └── layout/          # Layout (NavBar, PageHeader)
+│   │
+│   ├── lib/
+│   │   ├── simulation/      # Moteur simulation
+│   │   │   ├── types.ts     # Types centralisés
+│   │   │   ├── engine.ts    # Orchestrateur
+│   │   │   ├── core/        # Modules core (grid, combos, calc)
+│   │   │   ├── game-logic/  # Game logic (levels, shop, rewards)
+│   │   │   └── runners/     # Auto-runner
+│   │   │
+│   │   └── utils/           # Utilitaires
+│   │       ├── constants.ts
+│   │       ├── probability.ts
+│   │       └── config-cache.ts
+│   │
+│   ├── db/
+│   │   ├── schema.ts        # Schéma Drizzle (12 tables)
+│   │   ├── client.ts        # DB client
+│   │   ├── queries/         # Queries par domaine
+│   │   └── seed/            # Seeds
+│   │
+│   ├── styles/
+│   │   └── global.css       # Tailwind + custom animations
+│   │
+│   └── root.tsx             # Root Remix (layout global)
+│
+├── data/
+│   └── game.db              # Base SQLite
+│
+├── public/
+│   └── favicon.svg
+│
+├── docs/                    # Documentation
+├── drizzle/                 # Migrations Drizzle
+│
+├── package.json
+├── tsconfig.json
+├── tailwind.config.ts
+├── drizzle.config.ts
+├── vite.config.ts
+└── README.md
 ```
 
 ## Conventions de Code
 
 ### TypeScript
-- Strict mode activé
-- Pas de `any` (utiliser `unknown` si nécessaire)
+- **Strict mode** activé
+- Pas de `any` (utiliser `unknown` si besoin)
 - Types explicites pour fonctions publiques
-- Inférence OK pour variables locales
+- Interfaces pour objets complexes
 
 ### Naming
-- **Fichiers** : kebab-case (`my-file.ts`)
-- **Composants** : PascalCase (`MyComponent.tsx`)
-- **Fonctions** : camelCase (`myFunction`)
-- **Constants** : UPPER_SNAKE_CASE (`MY_CONSTANT`)
-- **Types/Interfaces** : PascalCase (`MyType`)
+- `camelCase` - variables, fonctions
+- `PascalCase` - composants, types, interfaces
+- `SCREAMING_SNAKE_CASE` - constantes
+- Fichiers : `kebab-case.tsx` ou `PascalCase.tsx` (composants)
 
 ### Imports
-- Alias `~/*` pour `app/*`
-- Imports groupés : externes → internes → composants → types
-- Pas d'imports circulaires
+- Alias `~` pour imports depuis `app/`
+- Grouper : React → Remix → DB → Components → Utils
 
-### Comments
-- JSDoc pour fonctions publiques
-- Inline pour logique complexe
-- Pas de comments évidents
+### Composants
+```tsx
+export default function ComponentName() {
+  // Hooks en premier
+  const data = useLoaderData();
+  
+  // Logic
+  const computed = useMemo(() => ..., [deps]);
+  
+  // Render
+  return <div>...</div>;
+}
+```
 
-## Testing (TODO)
+## Workflows Courants
 
-Framework suggéré : Vitest
+### Modifier une Table DB
+```bash
+1. Éditer app/db/schema.ts
+2. npm run db:push            # Sync schema
+3. Modifier seed si nécessaire
+4. npm run db:reset           # Re-seed
+```
 
-**Tests critiques** :
-- Moteur simulation : `lib/simulation/**/*.test.ts`
-- Détection combos (déduplication)
-- Calculs gains, XP, intérêts
-- Génération boutique (raretés)
+### Ajouter une Route
+```bash
+1. Créer app/routes/new-route.tsx
+2. Exporter loader/action si nécessaire
+3. Ajouter lien dans NavBar (si pertinent)
+```
+
+### Ajouter un Module Simulation
+```bash
+1. Créer app/lib/simulation/core/new-module.ts
+2. Définir types dans types.ts
+3. Intégrer dans engine.ts
+4. Tester indépendamment
+```
+
+### Modifier Config Cache
+```bash
+1. Éditer app/lib/utils/config-cache.ts
+2. Ajouter méthode si nécessaire
+3. Utiliser dans modules simulation
+4. Recharger après modifs UI (cache.reload())
+```
 
 ## Debug
 
-### Simulation
-Ajouter logs dans moteur :
+### Logs
 ```typescript
-console.log("[SPIN]", { grid, combos, tokensGained })
+console.log("Debug:", value);
 ```
 
-### Database
+### Drizzle Studio
 ```bash
-npm run db:studio    # UI browser
-# ou SQLite CLI
-sqlite3 data/game.db
+npm run db:studio    # UI pour explorer DB
 ```
 
-### UI
-React DevTools + Remix DevTools (auto en dev)
+### TypeScript Errors
+```bash
+npm run typecheck
+```
 
-## Performance
+### Dev Server
+Le dev server Vite a HMR (Hot Module Replacement).  
+Modifications auto-rechargées dans le navigateur.
 
-### Bottlenecks Potentiels
-- Batch simulations (1000+ runs) : considérer Web Workers
-- Large grids (si extension) : optimiser algo combos
-- DB queries : indexes automatiques, pas de N+1
+## Testing (à implémenter)
 
-### Optimisations Actuelles
-- SQLite WAL mode (concurrency)
-- Remix SSR cache
-- Tailwind purge CSS
-- Code splitting routes
+Structure prête pour Vitest :
+```typescript
+// my-module.test.ts
+import { describe, it, expect } from 'vitest';
+import { myFunction } from './my-module';
+
+describe('myFunction', () => {
+  it('should work', () => {
+    expect(myFunction(input)).toBe(output);
+  });
+});
+```
 
 ## Déploiement
 
 ### Docker
 ```bash
-docker build -t sim-bys .
-docker run -p 3000:3000 -v $(pwd)/data:/app/data sim-bys
+docker-compose up -d
 ```
 
-### Production Build
+Le `Dockerfile` et `docker-compose.yml` sont configurés :
+- Multi-stage build
+- Volume persistent pour SQLite
+- Port 3000 exposé
+- Reverse proxy Traefik ready
+
+### Variables d'environnement
+Aucune nécessaire pour le moment (SQLite local).
+
+## Performance
+
+### Cache Config
+Les configs DB (levels, shop rarities) sont chargées en mémoire au démarrage.
+
+### SQLite
+- Index sur clés étrangères
+- Queries optimisées
+- Single file = simple et rapide
+
+### Remix
+- SSR pour chargement initial rapide
+- Loaders pour data fetching optimisé
+- Actions pour mutations server-side
+
+## Extensions Possibles
+
+### Tests
 ```bash
-npm run build
-npm run start    # Port 3000
+npm install -D vitest @testing-library/react
 ```
 
-**Environment** :
-- `NODE_ENV=production`
-- `DATABASE_URL=./data/game.db` (default)
+### CI/CD
+GitHub Actions ou GitLab CI pour tests auto.
 
-### Reverse Proxy (Traefik/Nginx)
-Voir `docker-compose.yml` pour config Traefik.
+### Analytics
+Tracker stats simulation pour méta-analyse.
+
+### Export/Import
+Presets en JSON pour partage.
+
+### API
+Exposer endpoints REST pour simulation externe.
 
 ## Troubleshooting
 
-### DB Locked
-SQLite en mode single-writer. Si lock :
-```bash
-rm data/game.db-shm data/game.db-wal
-```
+### "Cannot find module ~/"
+Vérifier `vite.config.ts` → `resolve.alias`.
 
-### TypeScript Errors après Changement Schema
-```bash
-npm run db:push      # Regen types
-npm run typecheck    # Verify
-```
+### DB lock errors
+Fermer Drizzle Studio si ouvert.
 
-### Build Errors
+### Build errors
 ```bash
-rm -rf build/ node_modules/.cache/
+npm run typecheck
 npm run build
 ```
 
+### Port 3000 occupé
+Modifier `vite.config.ts` → `server.port`.
+
 ## Ressources
 
-- **Remix** : https://remix.run/docs
-- **Drizzle** : https://orm.drizzle.team/docs
-- **Tailwind** : https://tailwindcss.com/docs
-- **shadcn/ui** : https://ui.shadcn.com
-
-## Extensions Futures
-
-### Prioritaires
-1. Mode manual simulation (pause aux décisions)
-2. Visualisation grille 5×3 en temps réel
-3. Graphiques (Recharts) dans stats
-4. Export/import presets JSON
-5. Tests unitaires moteur
-
-### Nice-to-Have
-6. Mode endless (après 7-3)
-7. Achievements/trophées
-8. Replay animations
-9. Mobile responsive
-10. Multiplayer compare (leaderboards)
-
+- [Remix Docs](https://remix.run/docs)
+- [Drizzle ORM](https://orm.drizzle.team)
+- [Tailwind CSS](https://tailwindcss.com)
+- [shadcn/ui](https://ui.shadcn.com)
+- [Lucide Icons](https://lucide.dev)

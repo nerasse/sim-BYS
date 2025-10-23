@@ -7,6 +7,7 @@ import { jokersData } from "./jokers.seed";
 import { charactersData } from "./characters.seed";
 import { levelConfigsData } from "./level-configs.seed";
 import { shopRarityConfigsData } from "./shop-rarity-configs.seed";
+import { seedDefaultPreset } from "./preset-default.seed";
 
 async function seed() {
   console.log("🌱 Starting database seed...");
@@ -18,6 +19,14 @@ async function seed() {
     console.log("🗑️  Clearing existing data...");
     await db.delete(schema.simulationSteps);
     await db.delete(schema.simulationRuns);
+    // Supprimer les tables liées aux presets
+    await db.delete(schema.activePreset);
+    await db.delete(schema.presetJokerAvailability);
+    await db.delete(schema.presetBonusAvailability);
+    await db.delete(schema.presetShopRarityConfigs);
+    await db.delete(schema.presetLevelConfigs);
+    await db.delete(schema.presetComboConfigs);
+    await db.delete(schema.presetSymbolConfigs);
     await db.delete(schema.presets);
     await db.delete(schema.globalStats);
     await db.delete(schema.playerProgress);
@@ -76,6 +85,9 @@ async function seed() {
       symbolFrequencies: {},
       comboFrequencies: {},
     });
+
+    // Create default preset and set it as active
+    await seedDefaultPreset();
 
     console.log("✅ Database seeded successfully!");
   } catch (error) {

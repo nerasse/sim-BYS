@@ -26,6 +26,9 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const url = new URL(request.url);
+  const presetId = url.searchParams.get("preset");
+  
   const [symbols, combinations, startingBonuses, gameBonuses, jokers, characters, progress] =
     await Promise.all([
       getAllSymbols(),
@@ -37,6 +40,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
       getPlayerProgress(),
     ]);
 
+  let loadedPreset = null;
+  if (presetId) {
+    const { getPresetById } = await import("~/db/queries/presets");
+    loadedPreset = await getPresetById(presetId);
+  }
+
   return json({
     symbols,
     combinations,
@@ -45,6 +54,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     jokers,
     characters,
     progress,
+    loadedPreset,
   });
 }
 

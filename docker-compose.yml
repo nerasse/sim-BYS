@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  bys-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sim-bys
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      # Volume pour la base de données SQLite
+      - /home/neras/appdata/bys:/app/data
+    environment:
+      - NODE_ENV=production
+      - DATABASE_PATH=/app/data/game.db
+    networks:
+      - bys-network
+
+networks:
+  bys-network:
+    driver: bridge
+
+volumes:
+  bys-data:
+    driver: local
+

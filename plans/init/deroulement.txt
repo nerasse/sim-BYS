@@ -1,0 +1,102 @@
+Notes avant explication de déroulement de partie
+
+Le joueur équipera un bonus dis « de départ » dès le niveau 0 qui seront un peu différent des autres, ils seront faibles et serviront juste à passer les premiers niveaux et seront remplaçables plus tard
+Il gagnera un bonus gratuit à la fin de chaque fin de boss de niveau (1-3 / 2-3 / 3-3 / 4-3 etc.)
+Il gagnera également d’autres bonus grâce à ses level up sous forme de paliers de niveaux importants. Ex : Bonus à choisir au niveau 10 / 20 / 40 / 60 / 80 / 100 etc.
+Le joueur ne peut équiper que 3 bonus et au-delà de 3 il doit choisir un de ceux qu’il a d’équipé pour le remplacer par le nouveau qu’il a choisit.
+Les bonus proposés seront par 3  et pourront être roll 1 fois pour avoir 3 autres options
+
+
+Les intérêts des dollars gagnés en fin de petit niveau sont  calculés comme ceci : 
+1 $ supplémentaire par tranche de 5$ possédés (avec un maximum de scaling à 10$ gratuits pour 50$ possédés) comme TFT et Balatro.
+
+Les raretés des jokers des boutiques évolueront au cours de la partie
+La stat de chance qui influera sur la qualité des jokers en boutique (ex : farm la chance au max ferait des boutiques full jokers légendaires). Cette stat de chance va également impacter sur le fonctionnement de la slot ( ex : + de symboles gagants / connexions )
+
+Déroulement des niveaux : 1-1 / 1-2 / 1-3 / 2-1 / 2-2 / 2-3 / 3-1 / 3-2 / 3-3 etc.. jusqu’à 7-3
+Au niveau 7-3 réussis la run sera validée et le joueur avancera vers une nouvelle difficulté si il choisi d’y mettre un terme (il peut aussi continuer à l’infini si l’envie lui prend avec des sommes de plus en plus grosses à réunir pour valider les niveaux ex  :  niv15-3 demande 500000000000000 de jetons)
+
+PERSONNAGES :
+
+Il y aura plusieurs personnages déblocables (seulement 1 pour la démo) 
+Chaque personnage a un effet de base propre à lui 
+Chaque personnage aura également un BONUS différent
+Le personnage de la démo donnera + 1 % de Chance par niveau avec un scaling multiplicatif pour que le maximum de 90 de chance soit atteint vraiment tard dans la partie
+La chance maximal capée est de 90 (100 étant un jackpot à chaque screen)
+
+LEVEL UP : 
+
+Chaque level up octroiera une stat en fonction du personnage choisi
+Au bout d’un certain nombre de lvl up le joueur pourra choisir un nouveau bonus à ajouter
+
+
+Note pour les bonus : 
+
+Si le joueur possède ses 3 bonus équipés et qu’un 4è lui est proposé, il va avoir le choix soit de ne pas prendre ce 4è bonus, soit de remplacer un de ses 3 bonus actuellement équipé  par ce nouveau bonus
+Aussi les  bonus, auront des stats de base pas super mais vont lvl up au cours de la partie avec l’exp gagnée et auront des scaling sur toutes les stats qu’ils apportent
+Les bonus vont donc pouvoir lvl up, mais en fonction de la rareté du bonus ils auront un lvl max de plus en plus élevé en fonction de la qualité de la rareté (ex : bonus commun a lvl max à 20 et bonus légendaire a lvl max à 100)
+
+Exemple de déroulement d’une partie
+
+Le joueur commence niveau 0 avec 0$
+
+La partie commence par le joueur qui choisis un bonus de départ
+un choix entre 3 bonus différents qui seront identiques à chaque partie
+ce seront des bonus dits « de départ » qui seront différents des autres bonus déblocables au cours de la partie. Ils ont pour but de faire passer le premier niveau 1-1 sans devoir retry plusieurs fois dès le début
+ce seront des « mauvais » bonus ils serviront qu’au début et seront remplaçables 
+ex :	- au moins un spin est gagnant chaque niveau	
+	- octroie une petite quantité d’argent et d’exp si aucun spin n’est gagnant ce niveau
+	- donne une vie supplémentaire si le joueur meurs 
+
+Début Niveau 1-1
+
+Le joueur va faire 5 spins
+Il va devoir farm X jetons pour pouvoir valider le niveau
+Le joueur va très probablement level up au cours de ce niveau niveau 0 => 1
+
+Fin des 5 spins
+Le joueur empoche ses jetons qu’il a gagné ainsi que des dollars supplémentaires
+Il va gagner un montant flat de dollars à la fin de chaque niveau (exemple 1-1 = 6$ / 1-2 =6$ / 
+1-3 =8$) identiques pour les autres niveaux futurs. Il va également gagné des dollars supplémentaires sous forme d’intérêts (pratiquement exactement comme balatro à hauteur de 1$ supplémentaire tous les 5$ possédés)
+
+Fin Niveau 1-1
+
+
+
+Début intermédiaire entre Niveau 1-1 et 1-2 
+Le joueur va avoir accès à une boutique dans laquelle il va pouvoir acheter des JOKERS pour améliorer sa run
+Cette boutique aura des jokers et je pense qu’il serait une bonne idée d’y ajouter des consommables permanents pour booster la slot ex : Permanent à 1$ : ajoute 1 % de K
+Avec ses récompenses du niveau 1-1 le joueur doit avoir assez pour acheter un JOKER minimum
+La boutique peux être reroll en dépensant un montant de $ exponentiel à chaque reroll 
+
+Fin intermédiaire entre Niveau 1-1 et 1-2 
+
+Début Niveau 1-2
+
+Le joueur va faire 5 spins
+Il va devoir farm X jetons pour valider le niveau
+
+Fin des 5 spins
+
+Fin du Niveau 1-2
+Le joueur empoche ses jetons et ses dollars
+
+Intermédiaire entre Niveau 1-2 et 1-3
+Nouvelle boutique
+
+Début du Niveau 1-3 dit niveau « BOSS »
+
+Début des 5 spins
+Ce niveau demandera une plus grande quantité de jetons à avoir farm et la quantité demandée sera consommée de la réserve de joueur (comme si il payait ses dettes) 
+
+Fin des 5 spins
+
+FIN DU NIVEAU 1-3 
+Le joueur empoche ses jetons et ses dollars puis paie le montant de jetons demandés par le boss.
+
+Transition Niveau 1-3 > 2-1
+Le joueur va devoir choisir entre une sélection de BONUS à équiper avec son bonus de départ (et ses autres bonus si il en a eu grâce à des jokers ou autre entre temps)
+Le joueur va ensuite avoir une nouvelle boutique
+
+
+

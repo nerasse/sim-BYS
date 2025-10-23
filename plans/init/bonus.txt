@@ -1,0 +1,27 @@
+Différents bonus qui seront disponibles in game
+
+
+Bonus de départ
+
+Tous les 5 spins, le 5ème spin est gagnant (un spin gagnant a au moins une combinaison de symboles garantie)
+Octroi une certaine quantité de $ de jetons et d’exp si aucun spin n’est gagnant ce niveau 
+Donne une vie supplémentaire (si le nombre demandé de jetons n’est pas atteint à la fin du niveau, le joueur passe tout de même le niveau et ce bonus est détruit)
+A l’obtention de ce bonus, le joueur gagne X level up , puis ce bonus est détruit
+
+
+
+
+
+Bonus  de partie
+
+Réduit le poids de P1,P2,P3 de X % et augmente les valeurs de symboles de base de 10,J,Q,K,A de X
+Réduit le poids de 10,J,Q,K,A de X % et augmente les valeurs de symboles de base de P1,P2,P3 de X
+A la fin de l’échéance, ce bonus se transforme en 2 bonus aléatoires (si le joueur possède déjà 2 autres bonus, le joueur choisi lequel des 2 générés aléatoirement il garde)
+Rajoute + X chance, augmenté de + Y par lvl up
+Rajoute + X $ à la fin de chaque niveau, augmenté de + Y par lvl up
+Les combinaisons se déclenchent + X fois supplémentaire, augmenté de + Y par lvl up
+Le joueur gagne X symbole wild, augmenté de + Y par lvl up
+Le joueur choisi un symbole, chaque combinaison que fait ce symbole augmente sa valeur de base de X, augmenté de + Y par lvl up
+Le joueur choisi un symbole, à la fin de la prochaine échéance ce symbole est définitivement retiré de la partie, puis le joueur gagne un joker aléatoire de même rareté que ce bonus, puis ce bonus est détruit et il ne peut plus apparaître jusqu’à la fin de la partie
+Rajoute + X de multiplicateur de symbole et de combinaison, augmenté de + Y par lvl up
+Rajoute + X spin, augmenté de + Y par lvl up

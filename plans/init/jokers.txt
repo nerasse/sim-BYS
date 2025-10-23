@@ -1,0 +1,28 @@
+DIFFERENTES INTERACTIONS QUE DONNENT LES JOKERS
+
+
+Augmentation de % du poids d’un symbole au choix (10, J, Q, K, A, P1, P2, P3, B)
+Augmentation de Chance d’un montant flat
+Augmentation de multiplicateur de combinaison
+Augmentation de multiplicateur de symbole
+Rajoute une quantité de re-roll gratuit pendant les boutiques
+Autorise le joueur à s’endetter en $ pour acheter des jokers
+Augmente la valeur de revente des jokers possédés de 1$ par niveau
+Rajoute un montant de spins supplémentaires
+Si 10, J, Q font partie d’une connection de symboles, rajoute  un montant de multiplicateur de symbole 
+Si K, A font partie d’une connection de symboles, rajoute  un montant de multiplicateur de symbole 
+1 chance sur 4 d’augmenter multiplicateur de combinaison total permanent lors d’une connection
+Ce joker octroit un montant de $ supplémentaire à chaque fin de niveau
+Rajoute un montant de spins supplémentaires mais diminue la chance d’un montant flat
+Ajoute un montant de multiplicateur de symboles par nombre de dollar possédé (ex : +1multiplicateur de symbole pour chaque 5$ possédé)
+Ajoute un montant de multiplicateur de combinaison par nombre de dollar possédé (ex : +1multiplicateur de combinaison pour chaque 5$ possédé)
++X % d'exp supplémentaire obtenu + X $ obtenu en fin de niveau
+Chance augmentée de +X à chaque combinaison avec un maximum cumulable à 20 pour ce joker
+Chaque symbole basique qui connecte a un pourcentage de chance de donner un certain nombre de $ supplémentaires à chaque connexion
+Chaque symbole premium qui connecte a un pourcentage de chance de donner un certain nombre de jetons supplémentaires à chaque connexion
+Lorsqu’un spin n’est pas gagnant, chance +X, cumulable jusqu’à un max de +20, ne se réinitialise pas après un spin gagnant
+Une connexion de symboles premiums ajoute x1,5 au multiplicateur de combinaisons pour le spin en cours (cumulable, multiplicatif) 
+Une connexion de symboles basiques ajoute x1,5 au multiplicateur de combinaisons pour le spin en cours (cumulable, multiplicatif) 
+Les 10, J, Q comptent comme un seul et même symbole et connectent entre eux (ils prennent la valeur du symbole à la valeur la plus élevée des 3)
+Le joueur choisis parmi 3 bonus à équiper, puis le joker est détruit
+Augmente la rareté d’un bonus équipé sélectionné de 1 cran ( un bonus commun va devenir peu commun, etc,) puis ce joker se détruit

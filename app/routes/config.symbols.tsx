@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData, Form } from "@remix-run/react";
-import { getActivePresetId } from "~/db/queries/active-preset";
+import { requireActivePreset } from "~/lib/utils/require-active-preset";
 import { getPresetSymbolConfigs, upsertPresetSymbolConfig } from "~/db/queries/preset-symbol-configs";
 import { PageHeader } from "~/components/layout/page-header";
 import {
@@ -17,24 +17,14 @@ import { Button } from "~/components/ui/button";
 import { Shapes } from "lucide-react";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const activePresetId = await getActivePresetId();
-  
-  if (!activePresetId) {
-    throw new Response("No active preset", { status: 404 });
-  }
-
+  const activePresetId = await requireActivePreset();
   const symbolConfigs = await getPresetSymbolConfigs(activePresetId);
   
   return json({ symbolConfigs });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const activePresetId = await getActivePresetId();
-  
-  if (!activePresetId) {
-    return json({ error: "No active preset" }, { status: 404 });
-  }
-
+  const activePresetId = await requireActivePreset();
   const formData = await request.formData();
   const symbolId = formData.get("symbolId") as string;
   const weight = parseFloat(formData.get("weight") as string);

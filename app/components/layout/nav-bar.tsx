@@ -1,16 +1,22 @@
 import { Link } from "@remix-run/react";
 import { cn } from "~/lib/utils";
-import { LayoutDashboard, Settings, Gamepad2, TrendingUp, Save } from "lucide-react";
+import { Home, Settings, Gamepad2, TrendingUp, Save } from "lucide-react";
+import { Badge } from "~/components/ui/badge";
+import type { Preset } from "~/db/schema";
 
 const navItems = [
-  { href: "/", label: "Dashboard", Icon: LayoutDashboard },
+  { href: "/", label: "Accueil", Icon: Home },
   { href: "/config/symbols", label: "Configuration", Icon: Settings },
   { href: "/simulator", label: "Simulateur", Icon: Gamepad2 },
   { href: "/stats", label: "Statistiques", Icon: TrendingUp },
   { href: "/presets", label: "Presets", Icon: Save },
 ];
 
-export function NavBar() {
+interface NavBarProps {
+  activePreset: Preset | null;
+}
+
+export function NavBar({ activePreset }: NavBarProps) {
   return (
     <nav className="border-b bg-card">
       <div className="container mx-auto px-4">
@@ -42,9 +48,20 @@ export function NavBar() {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="text-sm text-muted-foreground">
-              Ascension: <span className="font-bold text-foreground">0</span>
-            </div>
+            {activePreset ? (
+              <Link to="/" className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Preset actif:</span>
+                <Badge variant="outline" className="cursor-pointer hover:bg-accent">
+                  {activePreset.name}
+                </Badge>
+              </Link>
+            ) : (
+              <Link to="/">
+                <Badge variant="destructive" className="cursor-pointer">
+                  Aucun preset actif
+                </Badge>
+              </Link>
+            )}
           </div>
         </div>
       </div>

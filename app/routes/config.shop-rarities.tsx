@@ -1,6 +1,6 @@
 import { type LoaderFunctionArgs, json } from "@remix-run/node";
 import { useLoaderData, Form } from "@remix-run/react";
-import { getActivePresetId } from "~/db/queries/active-preset";
+import { requireActivePreset } from "~/lib/utils/require-active-preset";
 import { getPresetShopRarityConfigs, upsertPresetShopRarityConfig } from "~/db/queries/preset-shop-rarity-configs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
@@ -9,24 +9,14 @@ import { PageHeader } from "~/components/layout/page-header";
 import { Progress } from "~/components/ui/progress";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const activePresetId = await getActivePresetId();
-  
-  if (!activePresetId) {
-    throw new Response("No active preset", { status: 404 });
-  }
-
+  const activePresetId = await requireActivePreset();
   const configs = await getPresetShopRarityConfigs(activePresetId);
   
   return json({ configs });
 }
 
 export async function action({ request }: LoaderFunctionArgs) {
-  const activePresetId = await getActivePresetId();
-  
-  if (!activePresetId) {
-    return json({ error: "No active preset" }, { status: 404 });
-  }
-
+  const activePresetId = await requireActivePreset();
   const formData = await request.formData();
   const world = parseInt(formData.get("world") as string);
   const commonWeight = parseFloat(formData.get("commonWeight") as string);

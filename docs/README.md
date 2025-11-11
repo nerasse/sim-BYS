@@ -1,23 +1,22 @@
 # Documentation Technique - Simulateur BYS
 
 Application fullstack de simulation de machine à sous roguelike.  
-**Outil professionnel de game design** pour configurer et tester des mécaniques de gambling.
+**Outil professionnel de game design** pour configurer et tester des mécaniques via **presets**.
 
 ## Structure Documentation
 
 ### [00-OVERVIEW.md](./00-OVERVIEW.md)
 Vue d'ensemble complète de l'application.
 - Stack technique
-- Architecture globale
+- **Architecture presets**
 - Fonctionnalités principales
 - Workflow typique
 - Commandes essentielles
 
 ### [01-DATABASE.md](./01-DATABASE.md)
 Architecture de la base de données.
-- 12 tables SQLite
+- **18 tables** (presets + configs)
 - Schéma complet
-- Cache de configuration
 - Queries organisées
 - Seeds et migrations
 
@@ -25,31 +24,34 @@ Architecture de la base de données.
 Moteur de simulation (cœur de l'application).
 - 14 modules indépendants
 - Types centralisés
+- **Intégration presets**
 - Algorithmes détaillés
-- Game loop
-- Runners
 
 ### [03-UI-ROUTES.md](./03-UI-ROUTES.md)
 Interface utilisateur et routing.
-- 11 routes Remix
-- Pages détaillées (loaders, actions, display)
+- **Routes presets** (home, config, stats)
+- Pages détaillées (loaders, actions)
 - Composants UI (shadcn/ui)
-- Layout et navigation
 - Patterns Remix
 
 ### [04-DEVELOPMENT.md](./04-DEVELOPMENT.md)
 Guide de développement.
 - Setup projet
 - Scripts npm
-- Structure code
+- **Workflow presets**
 - Conventions
-- Workflows courants
 - Debug et déploiement
+
+### [../REFACTORING-NOTES.md](../REFACTORING-NOTES.md)
+Notes sur l'architecture presets.
+- Refactoring complété
+- Code legacy conservé
+- Refactoring futur optionnel
 
 ## Accès Rapide
 
 ### Pour Comprendre l'App
-1. Lire `00-OVERVIEW.md` (vue d'ensemble)
+1. Lire `00-OVERVIEW.md` (vue d'ensemble + presets)
 2. Consulter `02-SIMULATION-ENGINE.md` (logique métier)
 3. Parcourir `01-DATABASE.md` (données)
 
@@ -57,73 +59,105 @@ Guide de développement.
 1. Setup : `04-DEVELOPMENT.md`
 2. Identifier le domaine (DB / Engine / UI)
 3. Consulter la doc correspondante
-4. Suivre les conventions de code
+4. **Comprendre système presets** : REFACTORING-NOTES.md
 
 ### Pour Utiliser (Game Design)
-1. **Config symboles** → `/config/symbols` (poids, valeurs, multiplicateurs)
-2. **Config combos** → `/config/combos` (multiplicateurs, actif/inactif)
-3. **Config niveaux** → `/config/levels` (objectifs, récompenses)
-4. **Config boutique** → `/config/shop-rarities` (probabilités raretés)
-5. **Créer preset** → `/presets` (sauvegarder config)
-6. **Simuler** → `/simulator` (charger preset, lancer)
-7. **Analyser** → `/stats` (résultats, métriques)
+1. **Sélectionner preset** → `/` (home)
+2. **Config symboles** → `/config/symbols`
+3. **Config combos** → `/config/combos`
+4. **Config niveaux** → `/config/levels`
+5. **Config boutique** → `/config/shop-rarities`
+6. **Config objets** → `/config/object-selections`
+7. **Simuler** → `/simulator`
+8. **Analyser** → `/stats?preset=<id>`
 
 ## Fonctionnalités Clés
 
-### ✏️ Configuration Complète
-- **Symboles** : Poids, valeurs, multiplicateurs éditables
+### 🎨 Système de Presets
+- **Sélection** : Page d'accueil dédiée
+- **Preset actif** : Un seul actif à la fois
+- **Isolation** : Chaque preset a ses propres configs
+- **CRUD** : Créer, dupliquer, modifier, supprimer
+- **Favoris et tags** : Organisation
+
+### ✏️ Configuration par Preset
+- **Symboles** : Poids, valeurs, multiplicateurs
 - **Combinaisons** : Multiplicateurs, activer/désactiver
-- **Niveaux** : Objectifs et récompenses personnalisables
-- **Boutique** : Probabilités de raretés par monde
-- Tous les personnages débloqués (outil de test)
+- **Niveaux** : Objectifs et récompenses
+- **Boutique** : Probabilités raretés
+- **Objets** : Bonus/jokers disponibles par niveau
 
-### 💾 Système de Presets
-- Sauvegarde configurations complètes
-- CRUD : Créer, lire, supprimer
-- Chargement dans simulateur (URL : `/simulator?preset=<id>`)
-- Favoris et tags
-
-### 🎰 Simulation Avancée
+### 🎰 Simulation
 - Grille 5×3, 9 symboles, 11 combos
+- **Utilise preset actif**
+- Mode auto avec batch
 - Système d'ascension (0-20+)
-- Shop dynamique avec raretés ajustées
-- Mode auto (IA simple)
-- Batch de 1 à 10000 itérations
 
-### 📊 Analytics
-- Stats globales et par ascension
-- Historique complet des simulations
-- Taux de succès, niveaux atteints
-- Métriques détaillées
+### 📊 Statistiques
+- **Filtrage par preset**
+- **Comparaison** entre presets
+- Stats par ascension
+- Historique détaillé
+
+## Workflow Presets
+
+### Créer et Configurer
+```
+1. Page d'accueil → "Créer preset"
+2. Preset créé avec configs par défaut
+3. Automatiquement activé
+4. Éditer dans /config/*
+5. Sauvegardes automatiques
+```
+
+### Simuler et Analyser
+```
+1. /simulator utilise preset actif
+2. Configs chargées depuis preset
+3. Run sauvegardée avec presetId
+4. /stats filtre par preset
+5. Comparaison entre presets
+```
+
+### Itérer
+```
+1. Dupliquer preset pour variante
+2. Modifier configs
+3. Comparer résultats
+4. Choisir meilleur preset
+```
 
 ## Use Cases
 
 ### Game Design
 ```
-1. Tweaker poids symboles pour changer variance
-2. Ajuster multiplicateurs combos pour balance
-3. Modifier objectifs niveaux pour difficulté
-4. Créer preset "Balance V2"
-5. Simuler 1000 runs
-6. Comparer avec "Balance V1"
-7. Itérer
+1. Créer preset "Balance V1"
+2. Tweaker poids symboles
+3. Ajuster objectifs niveaux
+4. Simuler 1000 runs
+5. Dupliquer → "Balance V2"
+6. Modifier multiplicateurs combos
+7. Comparer V1 vs V2
+8. Itérer
 ```
 
 ### Test Économie
 ```
-1. Configurer probabilités boutique
-2. Ajuster prix jokers (via DB)
-3. Simuler progression 1-1 → 7-3
-4. Analyser gains moyens
-5. Vérifier équilibre
+1. Créer preset "Économie Test"
+2. Configurer probabilités boutique
+3. Limiter jokers disponibles
+4. Simuler progression 1-1 → 7-3
+5. Analyser gains moyens
+6. Ajuster récompenses niveaux
 ```
 
 ### Validation Mécaniques
 ```
-1. Implémenter nouveau bonus/joker (via seed)
-2. Configurer synergie avec combos
-3. Tester impact sur success rate
-4. Ajuster valeurs
+1. Créer preset "Test Bonus X"
+2. Configurer disponibilité bonus
+3. Limiter à certains niveaux
+4. Tester impact sur success rate
+5. Ajuster valeurs
 ```
 
 ## Architecture Technique
@@ -134,19 +168,19 @@ Guide de développement.
 - Tailwind CSS + shadcn/ui + Lucide React
 
 ### Principes
-- **Séparation moteur/UI** : Simulation 100% découplée
-- **Type safety** : TypeScript strict, types générés DB
-- **Performance** : Cache configs, pure functions
-- **Flexibilité** : Tout éditable via UI
+- **Architecture presets** : Isolation complète
+- **Séparation moteur/UI** : Simulation découplée
+- **Type safety** : TypeScript strict
+- **Performance** : Pure functions, cache
 
 ### Structure
 ```
 app/
-├── routes/           # Pages Remix (11 routes)
+├── routes/           # Pages (home = presets)
 ├── lib/simulation/   # Moteur (14 modules)
-├── db/               # Database (12 tables)
+├── db/               # Database (18 tables)
 ├── components/       # UI components
-└── styles/           # Tailwind + custom
+└── root.tsx          # Loader preset actif
 ```
 
 ## Commandes Essentielles
@@ -159,7 +193,7 @@ npm run typecheck     # Vérifier TypeScript
 
 # Base de données
 npm run db:push       # Sync schema
-npm run db:seed       # Peupler données
+npm run db:seed       # Peupler + créer preset par défaut
 npm run db:reset      # Reset complet
 npm run db:studio     # UI Drizzle
 
@@ -173,14 +207,15 @@ docker-compose up -d  # Docker
 
 | Fichier | Description |
 |---------|-------------|
-| `app/lib/simulation/engine.ts` | Orchestrateur simulation |
-| `app/db/schema.ts` | Schéma DB complet (12 tables) |
+| `app/routes/_index.tsx` | Page d'accueil = sélection presets |
+| `app/lib/utils/require-active-preset.ts` | Helper protection routes |
+| `app/db/schema.ts` | Schéma DB (18 tables) |
 | `app/lib/simulation/types.ts` | Types centralisés |
-| `app/lib/utils/config-cache.ts` | Cache performance |
-| `app/routes/config.symbols.tsx` | Config symboles éditable |
-| `app/routes/config.combos.tsx` | Config combos éditable |
-| `app/routes/presets.tsx` | CRUD presets |
-| `app/routes/simulator.tsx` | Interface simulation |
+| `app/lib/simulation/engine.ts` | Orchestrateur simulation |
+| `app/routes/config.*.tsx` | Config par preset |
+| `app/routes/simulator.tsx` | Simulateur preset actif |
+| `app/routes/stats.tsx` | Stats par preset |
+| `REFACTORING-NOTES.md` | Notes architecture |
 
 ## Constants Clés
 
@@ -188,50 +223,54 @@ docker-compose up -d  # Docker
 - Symboles : **9** (5 basiques, 3 premium, 1 bonus)
 - Combinaisons : **11** types
 - Niveaux : **21** (7 mondes × 3 stages)
-- Max chance : **90%** (100% = jackpot garanti)
+- Tables : **18** (dont 7 pour presets)
+- Max chance : **90%** (100% = jackpot)
 - Max bonus équipés : **3**
 - Shop slots : **4**
 - Intérêts : **+1$/5$**, cap **+10$**
 
 ## État Actuel
 
-**Version** : 1.3.0  
+**Version** : 2.0.0  
 **Statut** : Production Ready  
-**Type** : Outil professionnel de game design  
+**Architecture** : Presets  
 
 **Complet** :
-- ✅ Configuration totale (symboles, combos, niveaux, boutique)
-- ✅ Système presets fonctionnel (CRUD + chargement)
-- ✅ Tous personnages débloqués
-- ✅ Simulation avancée avec ascension
-- ✅ Interface moderne avec Lucide React
+- ✅ Système presets fonctionnel
+- ✅ Configuration isolée par preset
+- ✅ Simulation avec preset actif
+- ✅ Stats par preset
+- ✅ Navigation avec indicateur preset
+- ✅ Protection routes sans preset
+- ✅ Config objets par niveau
 - ✅ Documentation complète
+
+**Legacy conservé** :
+- Tables globales `levelConfigs`, `shopRarityConfigs` (pour cache)
+- `configCache` (performance simulation)
+- Voir REFACTORING-NOTES.md pour détails
 
 ## Pour un Agent IA
 
 ### Workflow Modification
 1. **Contexte** : Lire `00-OVERVIEW.md`
-2. **Localiser** : Identifier fichier(s) concerné(s) via doc
+2. **Localiser** : Identifier fichier(s) via docs
 3. **Comprendre** : Lire code du fichier
 4. **Modifier** : Appliquer changements
 5. **Vérifier** : `npm run typecheck`
 
-### Exemple : "Ajouter un symbole"
-1. Lire `01-DATABASE.md` section symbols
-2. Ouvrir `app/db/seed/symbols.seed.ts`
-3. Ajouter objet dans `symbolsData`
-4. `npm run db:reset`
-5. Vérifier dans `/config/symbols`
-
-### Exemple : "Modifier multiplicateur combo"
-1. Aller sur `/config/combos`
-2. Modifier valeur dans formulaire
-3. Cliquer "Sauvegarder"
-4. Tester dans `/simulator`
+### Exemple : "Ajouter config dans preset"
+1. Lire `01-DATABASE.md` section presets
+2. Ajouter table `preset*Config` dans schema
+3. Créer queries dans `db/queries/`
+4. Créer route `config.*.tsx`
+5. Ajouter dans sidebar `config.tsx`
+6. `npm run db:push && npm run db:reset`
 
 ## Support & Resources
 
 - Documentation interne : `docs/`
+- Notes refactoring : `REFACTORING-NOTES.md`
 - Code source : `app/`
 - Database : `data/game.db`
 - Remix : https://remix.run

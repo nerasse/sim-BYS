@@ -1,12 +1,24 @@
+import type { LoaderFunctionArgs } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import {
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "@remix-run/react";
 import { NavBar } from "~/components/layout/nav-bar";
+import { getActivePreset } from "~/db/queries/active-preset";
 import "~/styles/global.css";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const activePresetData = await getActivePreset();
+  
+  return json({
+    activePreset: activePresetData?.preset || null,
+  });
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -27,9 +39,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const { activePreset } = useLoaderData<typeof loader>();
+  
   return (
     <>
-      <NavBar />
+      <NavBar activePreset={activePreset} />
       <main className="container mx-auto px-4 py-8">
         <Outlet />
       </main>

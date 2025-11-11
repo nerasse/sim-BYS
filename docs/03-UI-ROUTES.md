@@ -2,15 +2,7 @@
 
 ## Framework
 
-**Remix 2** avec file-based routing.  
-Chaque fichier dans `app/routes/` = une route accessible.
-
-## Icônes
-
-**Lucide React** utilisé dans toute l'application.
-- Import : `import { IconName } from "lucide-react"`
-- Usage : `<IconName className="w-4 h-4" />`
-- 15+ icônes : LayoutDashboard, Settings, Gamepad2, TrendingUp, Save, Shapes, Target, Gift, Sparkles, User, BarChart3, Store, Info, Play, etc.
+**Remix 2** avec file-based routing.
 
 ## Structure Remix
 
@@ -21,267 +13,251 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json({ data });
 }
 ```
-Accessible via `useLoaderData()` dans le composant.
 
 ### Action (Mutations)
 ```typescript
 export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
-  // Process mutation (CREATE, UPDATE, DELETE)
+  // Process mutation
   return json({ result });
 }
 ```
-Déclenché par `<Form method="post">`.
 
 ## Routes
 
 ```
-/                          - Dashboard
+/                          - Sélection de preset (home)
 /config                    - Layout avec sidebar
-/config/symbols            - Config symboles (éditable)
-/config/combos             - Config combinaisons (éditable)
-/config/bonuses            - Config bonus
-/config/jokers             - Config jokers
-/config/characters         - Config personnages
-/config/levels             - Config niveaux (éditable)
-/config/shop-rarities      - Config raretés boutique (éditable)
-/simulator                 - Interface simulation
-/simulator?preset=<id>     - Simulateur avec preset chargé
-/stats                     - Statistiques globales
+/config/symbols            - Config symboles du preset actif
+/config/combos             - Config combinaisons du preset actif
+/config/bonuses            - Bibliothèque bonus (lecture seule)
+/config/jokers             - Bibliothèque jokers (lecture seule)
+/config/characters         - Bibliothèque personnages (lecture seule)
+/config/levels             - Config niveaux du preset actif
+/config/shop-rarities      - Config raretés boutique du preset actif
+/config/object-selections  - Config objets par niveau (nouveau)
+/simulator                 - Simulation avec preset actif
+/stats                     - Statistiques par preset
+/stats?preset=<id>         - Stats d'un preset spécifique
 /presets                   - Gestion presets (CRUD)
 ```
 
 ## Pages Détaillées
 
-### Dashboard (`_index.tsx`)
-**Loader** : `getPlayerProgress()`, `getAllSimulationRuns()`
+### Home (`_index.tsx`) - Sélection Presets ⭐
+
+**Loader** : `getAllPresets()`, `getActivePreset()`, `getAllSimulationRuns()`
+
+**Actions** :
+- `create` - Créer preset et activer
+- `duplicate` - Dupliquer preset et activer
+- `setActive` - Activer un preset
+- `delete` - Supprimer preset
 
 **Display** :
-- Stats overview (ascension max, total runs, success rate)
-- Simulations récentes
-- Quick actions (Configuration, Simulateur, Statistiques, Presets)
-- Getting started (si aucune run)
+- **Hero** : Preset actif en grand avec actions (Configurer, Simuler)
+- **Créer preset** : Formulaire rapide
+- **Grid presets** : Cards avec stats (nb simulations, taux succès)
+- **Favoris** : Section séparée
+- **Actions par preset** : Activer, Dupliquer, Supprimer
 
-**Composants** : `PageHeader`, `Card`, `Button`, `Badge`
+**Protection** : Aucune (accessible sans preset actif)
 
 ---
 
 ### Config Layout (`config.tsx`)
-**Layout partagé** avec sidebar pour navigation entre sections.
 
-**Sidebar** : 7 sections avec icônes
-- Symboles (Shapes)
-- Combinaisons (Target)
-- Bonus (Gift)
-- Jokers (Sparkles)
-- Personnages (User)
-- Niveaux (BarChart3)
-- Raretés Boutique (Store)
+**Loader** : `getAllPresets()`, `getActivePreset()`  
+**Protection** : Redirect si pas de preset actif
+
+**Sidebar** : 8 sections
+- Symboles
+- Combinaisons
+- Bonus
+- Jokers
+- Personnages
+- Niveaux
+- Raretés Boutique
+- **Objets par Niveau** ← Nouveau
+
+**Top** : PresetSelector component (switch preset)
 
 ---
 
 ### Config Symboles (`config.symbols.tsx`) **ÉDITABLE**
-**Loader** : `getAllSymbols()`  
-**Action** : `UPDATE symbols` (poids, valeur, multiplicateur)
+
+**Loader** : `requireActivePreset()`, `getPresetSymbolConfigs()`  
+**Action** : `upsertPresetSymbolConfig()`
 
 **Display** :
 - 3 sections : Basiques, Premium, Bonus
-- **Formulaire par symbole** :
-  - Poids (probabilité)
-  - Valeur de base
-  - Multiplicateur
-  - Bouton sauvegarder
-- Graphique distribution temps réel
-
-**Composants** : `Card`, `Badge`, `Input`, `Form`, `Button`
+- **Formulaire par symbole** : Poids, Valeur, Multiplicateur
+- Édition du **preset actif uniquement**
 
 ---
 
 ### Config Combos (`config.combos.tsx`) **ÉDITABLE**
-**Loader** : `getAllCombinations()`  
-**Action** : `UPDATE combinations` (multiplicateur, isActive)
+
+**Loader** : `requireActivePreset()`, `getPresetComboConfigs()`  
+**Action** : `upsertPresetComboConfig()`
 
 **Display** :
-- **Formulaire par combo** :
-  - Input multiplicateur
-  - Boutons Activer/Désactiver
-  - Affichage ordre détection
-  - Code interne
-- Info sur ordre de détection
-
-**Composants** : `Card`, `Badge`, `Input`, `Form`, `Button`
+- **Formulaire par combo** : Multiplicateur, Activer/Désactiver
+- Édition du **preset actif uniquement**
 
 ---
 
-### Config Bonus (`config.bonuses.tsx`)
-**Loader** : `getAllBonuses()`
+### Config Objets par Niveau (`config.object-selections.tsx`) **NOUVEAU**
+
+**Loader** : `requireActivePreset()`, `getPresetBonusAvailabilities()`, `getPresetJokerAvailabilities()`
+
+**Actions** :
+- `addBonus` - Ajouter disponibilité bonus
+- `removeBonus` - Retirer disponibilité
+- `addJoker` - Ajouter disponibilité joker
+- `removeJoker` - Retirer disponibilité
 
 **Display** :
-- Section bonus départ (4)
-- Section bonus partie (12)
-- Filtres par rareté
-- Effets + scaling par level
-
-**Composants** : `Card`, `Badge`
-
----
-
-### Config Jokers (`config.jokers.tsx`)
-**Loader** : `getAllJokers()`
-
-**Display** :
-- Groupés par rareté
-- Prix, valeur revente
-- Tags, effets
-- Stats agrégées
-
-**Composants** : `Card`, `Badge`
-
----
-
-### Config Personnages (`config.characters.tsx`)
-**Loader** : `getUnlockedCharacters()`
-
-**Display** :
-- 3 personnages (tous débloqués)
-- Effets passifs
-- Bonus de départ
-- Stats de base et scaling
-
-**Composants** : `Card`, `Badge`
+- **Bonus configurés** : Liste avec plage (de X-3 à Y-3)
+- **Ajouter bonus** : Dropdown bonus + from/until
+- **Jokers configurés** : Liste avec plage
+- **Ajouter joker** : Dropdown joker + from/until
+- **Info** : Par défaut, tous disponibles si non configuré
 
 ---
 
 ### Config Niveaux (`config.levels.tsx`) **ÉDITABLE**
-**Loader** : `getAllLevelConfigs()`  
-**Action** : `updateLevelConfig(levelId, updates)`
+
+**Loader** : `requireActivePreset()`, `getPresetLevelConfigs()`  
+**Action** : `upsertPresetLevelConfig()`
 
 **Display** :
 - Groupés par monde (1-7)
-- **Formulaire par niveau** :
-  - Objectif jetons (Ascension 0)
-  - Récompense dollars
-  - Badge "Boss" si X-3
-  - Bouton sauvegarder
-- Info ascension auto-scaling
-
-**Composants** : `Card`, `Input`, `Form`, `Button`, `Badge`
+- **Formulaire par niveau** : Objectif, Récompense $
+- Badge "Boss" si X-3
 
 ---
 
-### Config Raretés Boutique (`config.shop-rarities.tsx`) **ÉDITABLE**
-**Loader** : `getAllShopRarityConfigs()`  
-**Action** : `updateShopRarityConfig(world, weights)`
+### Config Raretés (`config.shop-rarities.tsx`) **ÉDITABLE**
+
+**Loader** : `requireActivePreset()`, `getPresetShopRarityConfigs()`  
+**Action** : `upsertPresetShopRarityConfig()`
 
 **Display** :
 - 7 cards (1 par monde)
-- **Formulaire par monde** :
-  - 5 inputs (common, uncommon, rare, epic, legendary)
-  - Progress bars visuelles
-  - Total = 100% dynamique
-  - Bouton sauvegarder
-- Info ajustement ascension
-
-**Composants** : `Card`, `Input`, `Progress`, `Form`, `Button`
+- **Formulaire** : 5 poids (common → legendary)
+- Progress bars visuelles
 
 ---
 
 ### Simulateur (`simulator.tsx`)
-**Loader** :
-- `getAllSymbols()`, `getActiveCombinations()`
-- `getStartingBonuses()`, `getGameBonuses()`
-- `getAllJokers()`, `getUnlockedCharacters()`
-- `getPlayerProgress()`
-- `getPresetById(presetId)` si `?preset=<id>`
 
-**Action** : `runAutoSimulation(config)`
+**Loader** : `requireActivePreset()`, charge toutes les configs preset
+
+```typescript
+const [
+  preset,
+  symbolConfigs,      // ← preset
+  comboConfigs,       // ← preset
+  levelConfigs,       // ← preset
+  shopRarityConfigs,  // ← preset
+  startingBonuses,
+  characters
+] = await Promise.all([...]);
+```
+
+**Action** : `runAutoSimulation(config)`, sauvegarde avec `presetId`
 
 **Display** :
-- Panel configuration :
-  - Sélection personnage
-  - Sélection bonus départ
-  - Ascension (slider)
-  - Start/end level
-  - Iterations
-- Panel résultats :
-  - Success/Failure
-  - Stats détaillées
-  - Niveau atteint
-
-**État** : React local + Remix fetcher
-
-**Composants** : `Card`, `Input`, `Button`, `Badge`, `Separator`
+- **Header** : Affiche preset utilisé
+- **Panel config** : Personnage, Bonus départ, Ascension, Niveaux, Itérations
+- **Panel résultats** : Stats détaillées
+- **Protection** : Redirect si pas de preset actif
 
 ---
 
 ### Statistiques (`stats.tsx`)
-**Loader** : `getAllSimulationRuns()`, `getPlayerProgress()`
+
+**Loader** : `getAllSimulationRuns()`, `getAllPresets()`, filtrage par preset
 
 **Display** :
-- Overview global
-- Progression joueur
-- Stats par ascension
-- Runs récentes
+- **Sélecteur preset** : Boutons pour filtrer
+- **Comparaison presets** : Si aucun filtre, compare tous
+- **Stats preset** : Filtrées si preset sélectionné
+- **Stats par ascension** : Toujours affichées
+- **Runs récentes** : Filtrées ou toutes
 
-**Composants** : `Card`, `Badge`, `Progress`
+**URL** : `/stats?preset=<id>` pour filtre direct
+
+**Protection** : Aucune (accessible sans preset actif)
 
 ---
 
-### Presets (`presets.tsx`) **CRUD COMPLET**
-**Loader** :
-- `getAllPresets()`
-- `getAllSymbols()`, `getAllCombinations()`
+### Presets (`presets.tsx`) **CRUD**
+
+**Loader** : `getAllPresets()`, `getActivePreset()`
 
 **Actions** :
-- `CREATE preset` (sauvegarde config actuelle)
-- `DELETE preset` (avec confirmation)
-- `UPDATE preset` (toggle favorite)
+- `create` - Créer avec config par défaut
+- `duplicate` - Copier preset existant
+- `delete` - Supprimer (cascade configs)
+- `toggleFavorite` - Marquer favori
+- `setActive` - Activer preset
 
 **Display** :
 - Grid presets avec cards détaillées
-- Par preset :
-  - Nom, description, tags
-  - Favoris (⭐)
-  - Stats (ascension, niveaux, mode, itérations)
-  - Compteurs (symboles modifiés, combos actifs)
-  - Actions :
-    - **Charger** : Lien vers `/simulator?preset=<id>`
-    - **Supprimer** : Avec confirmation
-    - **Toggle favoris**
-- Bouton "Nouveau Preset" (capture config actuelle)
-- Empty state si aucun preset
+- **Actions** : Activer, Configurer, Dupliquer, Supprimer, Favoris
+- Formulaire création rapide
+- Info sur système presets
 
-**Intégration** : Les presets se chargent dans le simulateur via query param.
-
-**Composants** : `Card`, `Button`, `Badge`, `Form`
+**Protection** : Aucune
 
 ---
 
 ## Composants UI
 
-### shadcn/ui (Radix Primitives)
-Localisation : `app/components/ui/`
-
-- `button.tsx` - Variants: default, outline, ghost, link, destructive
-- `card.tsx` - Card + CardHeader + CardContent + CardFooter
+### shadcn/ui (`app/components/ui/`)
+- `button.tsx` - Variants: default, outline, ghost, destructive
+- `card.tsx` - Card + Header + Content + Footer
 - `badge.tsx` - Variants: default, secondary, outline, destructive
-- `input.tsx` - Input standard avec focus styles
-- `progress.tsx` - Barre de progression
-- `separator.tsx` - Ligne de séparation
+- `input.tsx` - Input standard
+- `select.tsx` - Dropdown
+- `progress.tsx` - Barre progression
+- `separator.tsx` - Ligne séparation
 
-### Layout
-- `nav-bar.tsx` - Navigation principale avec icônes
-- `page-header.tsx` - Header de page (title + description + actions)
+### Layout (`app/components/layout/`)
+- `nav-bar.tsx` - Navigation avec **indicateur preset actif**
+- `page-header.tsx` - Header de page
+
+### Presets (`app/components/presets/`)
+- `preset-selector.tsx` - Dropdown switch preset (dans config layout)
+
+## Navigation
+
+### NavBar
+```
+[Logo] [Accueil] [Configuration] [Simulateur] [Statistiques] [Presets]
+                                                              [Preset: "X" ▼]
+```
+
+**Preset actif** : Badge cliquable vers home  
+**Pas de preset** : Badge rouge "Aucun preset actif"
 
 ## Styling
 
-**Tailwind CSS** utility-first.
-
-**Dark mode** : `class="dark"` par défaut.
-
-**Custom animations** : `slideIn`, `fadeIn`, `bounceSubtle` (dans `global.css`).
+**Tailwind CSS** utility-first  
+**Dark mode** : `class="dark"` par défaut  
+**Custom animations** : `slideIn`, `fadeIn`, `bounceSubtle`
 
 ## Patterns
+
+### Protection Routes
+```tsx
+export async function loader() {
+  const presetId = await requireActivePreset(); // ← Redirect si null
+  // ... continue
+}
+```
 
 ### Form Actions
 ```tsx
@@ -294,15 +270,5 @@ Localisation : `app/components/ui/`
 
 ### Conditional Rendering
 ```tsx
-{items.length === 0 ? (
-  <EmptyState />
-) : (
-  <Grid items={items} />
-)}
-```
-
-### Loading States
-```tsx
-const fetcher = useFetcher();
-const isRunning = fetcher.state !== "idle";
+{items.length === 0 ? <EmptyState /> : <Grid items={items} />}
 ```

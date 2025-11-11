@@ -1,6 +1,6 @@
 import { type LoaderFunctionArgs, json } from "@remix-run/node";
 import { useLoaderData, Form } from "@remix-run/react";
-import { getActivePresetId } from "~/db/queries/active-preset";
+import { requireActivePreset } from "~/lib/utils/require-active-preset";
 import { getPresetLevelConfigs, upsertPresetLevelConfig } from "~/db/queries/preset-level-configs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
@@ -9,24 +9,14 @@ import { Button } from "~/components/ui/button";
 import { PageHeader } from "~/components/layout/page-header";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const activePresetId = await getActivePresetId();
-  
-  if (!activePresetId) {
-    throw new Response("No active preset", { status: 404 });
-  }
-
+  const activePresetId = await requireActivePreset();
   const levels = await getPresetLevelConfigs(activePresetId);
   
   return json({ levels });
 }
 
 export async function action({ request }: LoaderFunctionArgs) {
-  const activePresetId = await getActivePresetId();
-  
-  if (!activePresetId) {
-    return json({ error: "No active preset" }, { status: 404 });
-  }
-
+  const activePresetId = await requireActivePreset();
   const formData = await request.formData();
   const levelId = formData.get("levelId") as string;
   const world = parseInt(formData.get("world") as string);

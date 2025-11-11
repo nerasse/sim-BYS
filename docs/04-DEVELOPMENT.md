@@ -16,7 +16,7 @@ npm install
 ### Base de Données
 ```bash
 npm run db:push      # Créer tables
-npm run db:seed      # Peupler données
+npm run db:seed      # Peupler + créer preset par défaut
 ```
 
 ### Lancer l'app
@@ -35,7 +35,7 @@ npm run typecheck    # Vérification TypeScript
 ### Base de Données
 ```bash
 npm run db:push         # Sync schéma → SQLite
-npm run db:seed         # Seed données initiales
+npm run db:seed         # Seed données + preset par défaut
 npm run db:reset        # Reset complet (drop + seed)
 npm run db:studio       # UI Drizzle Studio
 ```
@@ -51,57 +51,46 @@ npm run start        # Serveur production
 ```
 sim-BYS/
 ├── app/
-│   ├── routes/              # Pages Remix (file-based routing)
-│   │   ├── _index.tsx       # Dashboard
+│   ├── routes/              # Pages Remix
+│   │   ├── _index.tsx       # Sélection preset (home)
 │   │   ├── config.tsx       # Layout config
 │   │   ├── config.*.tsx     # Pages config
 │   │   ├── simulator.tsx    # Simulateur
-│   │   ├── stats.tsx        # Stats
-│   │   └── presets.tsx      # Presets
+│   │   ├── stats.tsx        # Stats par preset
+│   │   └── presets.tsx      # Gestion presets
 │   │
 │   ├── components/
-│   │   ├── ui/              # shadcn/ui components
-│   │   └── layout/          # Layout (NavBar, PageHeader)
+│   │   ├── ui/              # shadcn/ui
+│   │   ├── layout/          # NavBar, PageHeader
+│   │   └── presets/         # PresetSelector
 │   │
 │   ├── lib/
 │   │   ├── simulation/      # Moteur simulation
 │   │   │   ├── types.ts     # Types centralisés
 │   │   │   ├── engine.ts    # Orchestrateur
-│   │   │   ├── core/        # Modules core (grid, combos, calc)
-│   │   │   ├── game-logic/  # Game logic (levels, shop, rewards)
+│   │   │   ├── core/        # Grid, combos, calc
+│   │   │   ├── game-logic/  # Levels, shop, rewards
 │   │   │   └── runners/     # Auto-runner
 │   │   │
 │   │   └── utils/           # Utilitaires
 │   │       ├── constants.ts
 │   │       ├── probability.ts
-│   │       └── config-cache.ts
+│   │       ├── config-cache.ts (legacy)
+│   │       └── require-active-preset.ts
 │   │
 │   ├── db/
-│   │   ├── schema.ts        # Schéma Drizzle (12 tables)
+│   │   ├── schema.ts        # Schéma Drizzle (18 tables)
 │   │   ├── client.ts        # DB client
 │   │   ├── queries/         # Queries par domaine
 │   │   └── seed/            # Seeds
 │   │
-│   ├── styles/
-│   │   └── global.css       # Tailwind + custom animations
-│   │
-│   └── root.tsx             # Root Remix (layout global)
+│   └── root.tsx             # Root Remix + loader preset actif
 │
 ├── data/
 │   └── game.db              # Base SQLite
 │
-├── public/
-│   └── favicon.svg
-│
 ├── docs/                    # Documentation
-├── drizzle/                 # Migrations Drizzle
-│
-├── package.json
-├── tsconfig.json
-├── tailwind.config.ts
-├── drizzle.config.ts
-├── vite.config.ts
-└── README.md
+├── REFACTORING-NOTES.md     # Notes architecture presets
 ```
 
 ## Conventions de Code
@@ -110,63 +99,115 @@ sim-BYS/
 - **Strict mode** activé
 - Pas de `any` (utiliser `unknown` si besoin)
 - Types explicites pour fonctions publiques
-- Interfaces pour objets complexes
 
 ### Naming
 - `camelCase` - variables, fonctions
-- `PascalCase` - composants, types, interfaces
+- `PascalCase` - composants, types
 - `SCREAMING_SNAKE_CASE` - constantes
-- Fichiers : `kebab-case.tsx` ou `PascalCase.tsx` (composants)
+- Fichiers : `kebab-case.tsx` ou `PascalCase.tsx`
 
 ### Imports
 - Alias `~` pour imports depuis `app/`
 - Grouper : React → Remix → DB → Components → Utils
 
-### Composants
-```tsx
-export default function ComponentName() {
-  // Hooks en premier
-  const data = useLoaderData();
-  
-  // Logic
-  const computed = useMemo(() => ..., [deps]);
-  
-  // Render
-  return <div>...</div>;
-}
-```
-
 ## Workflows Courants
 
-### Modifier une Table DB
+### Créer un Nouveau Preset
+```bash
+1. Page d'accueil → "Créer preset"
+2. Preset créé avec configs par défaut
+3. Automatiquement activé
+4. Redirect vers /config
+5. Éditer configs
+```
+
+### Modifier un Preset Existant
+```bash
+1. Sélectionner preset (devient actif)
+2. Aller dans /config/*
+3. Éditer configs (sauvegarde auto par formulaire)
+4. Simuler pour tester
+```
+
+### Ajouter une Table DB
 ```bash
 1. Éditer app/db/schema.ts
 2. npm run db:push            # Sync schema
-3. Modifier seed si nécessaire
-4. npm run db:reset           # Re-seed
+3. Créer queries dans app/db/queries/
+4. Modifier seed si nécessaire
+5. npm run db:reset           # Re-seed
 ```
 
 ### Ajouter une Route
 ```bash
 1. Créer app/routes/new-route.tsx
 2. Exporter loader/action si nécessaire
-3. Ajouter lien dans NavBar (si pertinent)
+3. Ajouter dans NavBar si pertinent
+4. Si route config : ajouter dans config.tsx sidebar
 ```
 
-### Ajouter un Module Simulation
+### Modifier le Moteur Simulation
 ```bash
-1. Créer app/lib/simulation/core/new-module.ts
+1. Éditer modules dans app/lib/simulation/
 2. Définir types dans types.ts
 3. Intégrer dans engine.ts
 4. Tester indépendamment
 ```
 
-### Modifier Config Cache
-```bash
-1. Éditer app/lib/utils/config-cache.ts
-2. Ajouter méthode si nécessaire
-3. Utiliser dans modules simulation
-4. Recharger après modifs UI (cache.reload())
+## Architecture Presets
+
+### Preset Actif
+Une seule ligne dans `activePreset` table :
+```sql
+id | presetId
+1  | "abc123"
+```
+
+Chargée dans `root.tsx` et passée à NavBar.
+
+### Isolation Configs
+Chaque preset a ses propres rows dans :
+- `presetSymbolConfigs`
+- `presetComboConfigs`
+- `presetLevelConfigs`
+- `presetShopRarityConfigs`
+- `presetBonusAvailability`
+- `presetJokerAvailability`
+
+### Protection Routes
+Helper `requireActivePreset()` dans loader :
+```typescript
+export async function loader() {
+  const presetId = await requireActivePreset();
+  // → Redirect "/" si null
+  // → Continue si preset actif
+}
+```
+
+Utilisé dans :
+- Toutes les routes `/config/*`
+- `/simulator`
+
+Non utilisé dans :
+- `/` (home)
+- `/stats` (accessible sans preset)
+- `/presets` (accessible sans preset)
+
+### Workflow de Données
+```
+User sélectionne preset
+    ↓
+setActivePreset(id)
+    ↓
+Routes config chargent preset_*_configs
+    ↓
+User édite → upsert dans tables preset
+    ↓
+Simulator charge configs preset
+    ↓
+runSimulation avec configs
+    ↓
+Sauvegarde run avec presetId
 ```
 
 ## Debug
@@ -187,8 +228,7 @@ npm run typecheck
 ```
 
 ### Dev Server
-Le dev server Vite a HMR (Hot Module Replacement).  
-Modifications auto-rechargées dans le navigateur.
+Vite HMR (Hot Module Replacement) actif.
 
 ## Testing (à implémenter)
 
@@ -212,50 +252,50 @@ describe('myFunction', () => {
 docker-compose up -d
 ```
 
-Le `Dockerfile` et `docker-compose.yml` sont configurés :
-- Multi-stage build
-- Volume persistent pour SQLite
-- Port 3000 exposé
-- Reverse proxy Traefik ready
+Dockerfile multi-stage build.  
+Volume persistent pour SQLite.  
+Port 3000 exposé.
 
 ### Variables d'environnement
-Aucune nécessaire pour le moment (SQLite local).
+Aucune nécessaire (SQLite local).
 
 ## Performance
 
-### Cache Config
-Les configs DB (levels, shop rarities) sont chargées en mémoire au démarrage.
+### Isolation Presets
+Configs chargées par preset uniquement lors de l'utilisation.
 
 ### SQLite
 - Index sur clés étrangères
 - Queries optimisées
-- Single file = simple et rapide
+- Single file
 
 ### Remix
-- SSR pour chargement initial rapide
-- Loaders pour data fetching optimisé
+- SSR pour chargement rapide
+- Loaders pour data fetching
 - Actions pour mutations server-side
 
 ## Extensions Possibles
 
+### Refactorisation Cache
+Supprimer `configCache` global et passer configs preset au moteur.
+
+### Export/Import Presets
+JSON pour partage entre utilisateurs.
+
+### API REST
+Exposer endpoints pour simulation externe.
+
 ### Tests
-```bash
-npm install -D vitest @testing-library/react
-```
-
-### CI/CD
-GitHub Actions ou GitLab CI pour tests auto.
-
-### Analytics
-Tracker stats simulation pour méta-analyse.
-
-### Export/Import
-Presets en JSON pour partage.
-
-### API
-Exposer endpoints REST pour simulation externe.
+Vitest + Testing Library pour couverture.
 
 ## Troubleshooting
+
+### "No active preset"
+```bash
+# Redirect vers / pour sélectionner preset
+# OU seed DB pour créer preset par défaut
+npm run db:seed
+```
 
 ### "Cannot find module ~/"
 Vérifier `vite.config.ts` → `resolve.alias`.
@@ -269,9 +309,6 @@ npm run typecheck
 npm run build
 ```
 
-### Port 3000 occupé
-Modifier `vite.config.ts` → `server.port`.
-
 ## Ressources
 
 - [Remix Docs](https://remix.run/docs)
@@ -279,3 +316,4 @@ Modifier `vite.config.ts` → `server.port`.
 - [Tailwind CSS](https://tailwindcss.com)
 - [shadcn/ui](https://ui.shadcn.com)
 - [Lucide Icons](https://lucide.dev)
+- [REFACTORING-NOTES.md](../REFACTORING-NOTES.md)

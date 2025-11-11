@@ -2,33 +2,55 @@
 
 ## Architecture
 
-Le moteur est **100% découplé** de l'UI. Il est composé de modules purs et testables.
+Le moteur est **100% découplé** de l'UI. Modules purs et testables.
+
+## Integration Presets
+
+Le simulateur charge les configs depuis le **preset actif** et les passe au moteur :
+```typescript
+// Dans simulator.tsx (loader)
+const symbolConfigs = await getPresetSymbolConfigs(activePresetId);
+const comboConfigs = await getPresetComboConfigs(activePresetId);
+
+// Transformation pour le moteur
+const symbolWeights = {};
+symbolConfigs.forEach(({ config, symbol }) => {
+  symbolWeights[symbol.id] = config.weight;
+});
+
+// Passage au moteur
+const result = runAutoSimulation({
+  character,
+  startingBonus,
+  symbolWeights,        // ← depuis preset
+  comboMultipliers,     // ← depuis preset
+  ascension,
+  // ...
+});
+```
 
 ## Types Centralisés (`types.ts`)
 
 ```typescript
-// Configuration de simulation
 SimulationConfig {
   character, startingBonus, ascension
-  symbolWeights, comboMultipliers
+  symbolWeights: Record<string, number>    // ← preset
+  comboMultipliers: Record<string, number> // ← preset
   startLevel, endLevel, startingDollars
   iterations, mode
 }
 
-// État du jeu
 GameState {
   level, tokens, dollars, spins, xp
   bonuses[], jokers[], shopInventory
   chance, multiplier
 }
 
-// Résultat de spin
 SpinResult {
   grid, combosDetected, tokensGained
   newState
 }
 
-// Résultat de simulation
 SimulationResult {
   success, finalLevel, totalTokens
   stats, decisions, completedFully
@@ -38,114 +60,59 @@ SimulationResult {
 ## Modules Core
 
 ### `grid-generator.ts`
-Génération de la grille 5×3.
+Génération grille 5×3 avec symbolWeights depuis preset.
 
 ```typescript
 generateGrid(symbolWeights, chance) → Grid5x3
 ```
-- Weighted random basé sur poids symboles
-- Boost de chance augmente symboles premium
-- Jackpot garanti si chance = 100%
 
 ### `deduplication.ts`
-Marque les symboles utilisés dans un combo.
-
-```typescript
-deduplicateGrid(grid, combo) → Grid5x3
-```
-- Symbole utilisé = `null`
-- Empêche réutilisation dans autre combo
+Marque symboles utilisés = `null`.
 
 ### `combo-detector.ts`
-Détecte tous les combos dans la grille.
+Détecte combos selon `detectionOrder`.
 
 ```typescript
 detectCombos(grid, combinations, symbolData) → DetectedCombo[]
 ```
-- Ordre de détection : `detectionOrder` (1-11)
-- Déduplication après chaque combo trouvé
-- Support wilds
 
-**Types de combos** :
-- H3, H4, H5 (horizontaux)
-- V3, V (vertical), V_BIS (2 verticaux)
-- D3 (diagonal)
-- TRI (triple paire), OEIL (4 coins)
-- JACKPOT (mono-symbole)
-- MULTI (plusieurs combos)
+**Types** : H3, H4, H5, V3, V, V_BIS, D3, TRI, OEIL, JACKPOT, MULTI
 
 ### `calculator.ts`
-Calcul des gains finaux.
+Calcul gains finaux.
 
 ```typescript
 calculateGains(combos, state) → number
 ```
-- Somme (valeur symbole × multiplicateur combo × multiplier joueur)
-- Application effets bonus/jokers
 
 ## Modules Game Logic
 
 ### `level-manager.ts`
-Gestion des niveaux.
+Gestion niveaux. **Utilise configCache (legacy)**.
 
 ```typescript
 getLevelInfo(levelId, ascension) → LevelInfo
-calculateLevelRewards(levelId, dollars, ascension) → LevelRewards
 isLevelObjectiveMet(tokens, levelId, ascension) → boolean
-consumeBossTokens(tokens, levelId, ascension) → number
 ```
-- Objectifs depuis `configCache`
-- Intérêts : +1$/5$, cap +10$
-- Boss levels consomment jetons
 
 ### `bonus-applier.ts`
-Application des effets de bonus.
-
-```typescript
-applyBonusEffects(bonuses, state) → GameState
-```
-- Multiplicateur global
-- Bonus jetons
-- Effets spéciaux
+Application effets bonus.
 
 ### `joker-applier.ts`
-Application des effets de jokers.
-
-```typescript
-applyJokerEffects(jokers, state) → GameState
-```
-- Multiplicateurs
-- Modifications shop
-- Effets conditionnels
+Application effets jokers.
 
 ### `shop-manager.ts`
-Génération et gestion boutique.
+Génération boutique. **Utilise configCache (legacy)**.
 
 ```typescript
 generateShopInventory(jokers, level, ascension, chance) → ShopInventory
-getRarityDistribution(level, ascension, chance) → Record<Rarity, number>
-purchaseJoker(item, dollars) → { success, newDollars, joker }
-rerollShop(inventory, jokers, level, ascension, chance) → ShopInventory
 ```
-- Raretés depuis `configCache`
-- Ajustement ascension automatique
-- Prix modifiés par ascension
 
 ### `rewards.ts`
 Génération récompenses (choix bonus).
 
-```typescript
-generateBonusChoices(bonuses, level, ascension) → [Bonus, Bonus, Bonus]
-```
-- Raretés augmentées en ascension élevée
-
 ### `progression.ts`
 Gestion XP et levels.
-
-```typescript
-gainXP(state, amount) → GameState
-checkLevelUp(state) → boolean
-```
 
 ## Engine Principal (`engine.ts`)
 
@@ -162,11 +129,11 @@ executeLevelUp(state) → GameState
 ```
 1. Init state
 2. Pour chaque niveau:
-   a. N spins (généralement 5)
+   a. N spins
    b. Shop phase
    c. Check objectif
    d. Level up si OK
-   e. Boss consomme jetons si stage 3
+   e. Boss consomme jetons si X-3
 3. Retour résultat final
 ```
 
@@ -182,9 +149,6 @@ runAutoSimulation(config) → SimulationResult
 - Achat jokers si budget
 - Progression jusqu'à échec ou fin
 
-### Batch Runner (futur)
-Multiple runs en parallèle pour stats.
-
 ## Constantes (`constants.ts`)
 
 ```typescript
@@ -197,9 +161,18 @@ JACKPOT_CHANCE = 100
 SHOP_SLOTS = 4
 INTEREST_RATE_PER_5_DOLLARS = 1
 MAX_INTEREST = 10
+ASCENSION_OBJECTIVE_MULTIPLIER = 0.15
 ```
 
-**Note** : Objectifs niveaux et raretés boutique sont en DB, pas hardcodés.
+## Config Cache (Legacy)
+
+Le `configCache` (`app/lib/utils/config-cache.ts`) charge les configs **globales** au démarrage pour performance.
+
+**Utilisé par** :
+- `level-manager.ts` - getLevelObjective, isBossLevel
+- `shop-manager.ts` - getRarityDistribution
+
+**Note** : Le cache utilise encore les tables globales `levelConfigs` et `shopRarityConfigs`. Refactorisation future pour utiliser configs preset directement.
 
 ## Helpers
 
@@ -208,14 +181,6 @@ MAX_INTEREST = 10
 weightedRandom(weights) → string
 randomSample(array, count) → T[]
 normalizeWeights(weights) → Record<string, number>
-```
-
-### `config-cache.ts`
-Cache mémoire des configs.
-```typescript
-configCache.getLevelObjective(levelId, ascension)
-configCache.getLevelReward(levelId)
-configCache.getShopRarityWeights(world)
 ```
 
 ## Caractéristiques
@@ -227,31 +192,32 @@ Pas d'effets de bord, testables facilement.
 Tous les types explicites, pas de `any`.
 
 ### Modularité
-14 modules indépendants, chacun avec responsabilité claire.
+14 modules indépendants, responsabilité claire.
 
 ### Performance
 - Simulations rapides (pure JS)
-- Pas de requêtes DB pendant simulation (cache)
+- Pas de requêtes DB pendant simulation
 - Algorithmes optimisés
 
 ## Utilisation
 
 ```typescript
-import { runAutoSimulation } from "~/lib/simulation/runners/auto-runner";
-import type { SimulationConfig } from "~/lib/simulation/types";
-
+// Dans simulator.tsx
 const config: SimulationConfig = {
-  character: { ... },
-  symbolWeights: { "10": 10, "J": 8, ... },
-  comboMultipliers: { "H3": 1.5, ... },
+  character,
+  startingBonus,
+  symbolWeights,        // ← depuis preset
+  comboMultipliers,     // ← depuis preset
   ascension: 10,
   startLevel: "1-1",
   endLevel: "7-3",
-  // ...
+  startingDollars: 10,
+  mode: "auto",
+  iterations: 1,
 };
 
-const result = await runAutoSimulation(config);
-console.log(result.success, result.finalLevel, result.stats);
+const result = runAutoSimulation(config);
+// → { success, finalLevel, stats, ... }
 ```
 
 ## Extension

@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData, Form } from "@remix-run/react";
-import { getActivePresetId } from "~/db/queries/active-preset";
+import { requireActivePreset } from "~/lib/utils/require-active-preset";
 import { getPresetComboConfigs, upsertPresetComboConfig } from "~/db/queries/preset-combo-configs";
 import { PageHeader } from "~/components/layout/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
@@ -11,24 +11,14 @@ import { Button } from "~/components/ui/button";
 import { Target } from "lucide-react";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const activePresetId = await getActivePresetId();
-  
-  if (!activePresetId) {
-    throw new Response("No active preset", { status: 404 });
-  }
-
+  const activePresetId = await requireActivePreset();
   const comboConfigs = await getPresetComboConfigs(activePresetId);
   
   return json({ comboConfigs });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const activePresetId = await getActivePresetId();
-  
-  if (!activePresetId) {
-    return json({ error: "No active preset" }, { status: 404 });
-  }
-
+  const activePresetId = await requireActivePreset();
   const formData = await request.formData();
   const comboId = formData.get("comboId") as string;
   const multiplier = parseFloat(formData.get("multiplier") as string);

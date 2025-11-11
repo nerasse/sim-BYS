@@ -2,17 +2,17 @@
 
 ## Description
 
-Application fullstack de simulation de machine à sous type roguelike avec système d'ascension, progression, boutique dynamique, bonus et jokers. **Outil professionnel de game design** permettant de configurer et tester toutes les mécaniques d'un jeu de gambling.
+Application fullstack de simulation de machine à sous type roguelike avec système d'ascension, progression, boutique dynamique, bonus et jokers. **Outil professionnel de game design** permettant de configurer et tester toutes les mécaniques via des **presets**.
 
 ## Stack Technique
 
 ### Frontend
 - **React 18** - Librairie UI
-- **Remix 2** - Framework fullstack avec SSR
+- **Remix 2** - Framework fullstack SSR
 - **TypeScript** - Type-safety complète
 - **Tailwind CSS** - Styling utility-first
 - **shadcn/ui** - Composants UI (Radix primitives)
-- **Lucide React** - Bibliothèque d'icônes (15+ icônes utilisées)
+- **Lucide React** - Bibliothèque d'icônes
 
 ### Backend & Data
 - **SQLite** - Base de données locale (`data/game.db`)
@@ -27,110 +27,152 @@ Application fullstack de simulation de machine à sous type roguelike avec syst�
 
 ## Architecture
 
+### Système de Presets
+Architecture entièrement centrée sur les **presets**. Un preset contient toute la configuration d'une simulation :
+- Poids et valeurs des symboles
+- Multiplicateurs et activation des combos
+- Objectifs et récompenses des niveaux
+- Probabilités de raretés boutique
+- Disponibilité des bonus/jokers par niveau
+
 ### Séparation Moteur/UI
-Le moteur de simulation (`app/lib/simulation/`) est **100% découplé** de l'interface. Il peut fonctionner indépendamment de React/Remix.
+Le moteur de simulation (`app/lib/simulation/`) est **100% découplé** de l'interface.
 
 ### Type Safety
-TypeScript strict activé. Drizzle génère automatiquement les types depuis le schéma de base de données.
+TypeScript strict activé. Drizzle génère automatiquement les types depuis le schéma DB.
 
 ### File-Based Routing
-Remix utilise le routing basé sur les fichiers. Chaque fichier dans `app/routes/` = une route accessible.
+Remix utilise le routing basé sur les fichiers. Chaque fichier dans `app/routes/` = une route.
 
 ## Fonctionnalités Principales
 
+### 🎨 Système de Presets
+- **Sélection de preset** : Page d'accueil dédiée
+- **Preset actif** : Un seul preset actif à la fois
+- **CRUD complet** : Créer, dupliquer, modifier, supprimer
+- **Configuration isolée** : Chaque preset a ses propres configs
+- **Favoris et tags** : Organisation facilitée
+
+### ⚙️ Configuration par Preset
+- **Symboles** : Poids, valeurs, multiplicateurs
+- **Combinaisons** : Multiplicateurs, actif/inactif
+- **Niveaux** : Objectifs et récompenses
+- **Raretés boutique** : Probabilités par monde
+- **Objets par niveau** : Bonus/jokers disponibles
+
 ### 🎰 Simulation
-- Moteur de simulation roguelike complet
+- Moteur roguelike complet
 - Grille 5×3 avec 9 symboles
 - 11 types de combinaisons configurables
 - Système de niveaux (7 mondes × 3 stages)
-- Mode auto-run (batch de simulations)
+- Mode auto-run avec batch simulations
+- **Utilise le preset actif**
 
-### ⚙️ Configuration Totale
-- **Symboles** : Poids, valeurs, multiplicateurs éditables
-- **Combinaisons** : Multiplicateurs, actif/inactif
-- **Niveaux** : Objectifs et récompenses personnalisables
-- **Boutique** : Probabilités de raretés par monde
-- **Tous les personnages débloqués** (outil de test)
+### 📊 Statistiques
+- **Filtrage par preset** : Analysez chaque preset séparément
+- **Comparaison** : Vue globale comparant tous les presets
+- Stats par ascension
+- Historique des simulations
+- Taux de succès et métriques
 
-### 💾 Système de Presets
-- Sauvegarde de configurations complètes
-- CRUD complet (créer, lire, supprimer)
-- Chargement dans simulateur en 1 clic
-- Gestion favoris et tags
-
-### 📊 Système d'Ascension
+### 📈 Système d'Ascension
 - Difficulté progressive (0-20+)
 - Objectifs × (1 + ascension × 0.15)
 - Raretés boutique ajustées automatiquement
 - Tracking séparé par niveau d'ascension
 
-### 📈 Statistiques
-- Stats globales et par ascension
-- Historique des simulations
-- Taux de succès et métriques
-- Progression sauvegardée
-
 ## Structure de Données
 
-### 12 Tables SQLite
+### Tables Principales (18 au total)
+
+#### Configuration Globale
 ```
-symbols              - 9 symboles (basiques, premium, bonus)
-combinations         - 11 types de combos
-bonuses              - 16 bonus (4 départ + 12 partie)
-jokers               - 25+ jokers avec effets
-characters           - 3 personnages (tous débloqués)
-level_configs        - 21 niveaux configurables
-shop_rarity_configs  - 7 configurations boutique
-player_progress      - Progression et ascension max
-presets              - Configurations sauvegardées
-simulation_runs      - Historique des simulations
-simulation_steps     - Détails step-by-step
-global_stats         - Statistiques agrégées
+symbols             - 9 symboles (basiques, premium, bonus)
+combinations        - 11 types de combos
+bonuses             - 16 bonus (4 départ + 12 partie)
+jokers              - 25+ jokers avec effets
+characters          - 3 personnages (tous débloqués)
 ```
 
-### Cache de Performance
-Configurations chargées en mémoire au démarrage (`configCache`) pour éviter les requêtes DB pendant les simulations.
+#### Système de Presets
+```
+presets                    - Métadonnées des presets
+activePreset               - Preset actuellement actif (1 ligne)
+presetSymbolConfigs        - Config symboles par preset
+presetComboConfigs         - Config combos par preset
+presetLevelConfigs         - Config niveaux par preset
+presetShopRarityConfigs    - Config raretés par preset
+presetBonusAvailability    - Bonus disponibles par niveau
+presetJokerAvailability    - Jokers disponibles par niveau
+```
+
+#### Progression & Historique
+```
+playerProgress      - Progression globale
+simulationRuns      - Historique simulations (avec presetId)
+simulationSteps     - Détails step-by-step
+globalStats         - Statistiques agrégées
+```
+
+#### Legacy (conservées pour cache)
+```
+levelConfigs        - Configs niveaux globales (cache)
+shopRarityConfigs   - Configs raretés globales (cache)
+```
 
 ## Pages de l'Application
 
 ```
-/                    - Dashboard avec stats overview
-/config/symbols      - Config symboles (éditable)
-/config/combos       - Config combinaisons (éditable)
-/config/bonuses      - Config bonus
-/config/jokers       - Config jokers
-/config/characters   - Config personnages
-/config/levels       - Config niveaux (éditable)
-/config/shop-rarities - Config raretés boutique (éditable)
-/simulator           - Interface de simulation
-/stats               - Statistiques globales
-/presets             - Gestion des presets
+/                          - Sélection de preset (home)
+/config                    - Layout avec sidebar
+/config/symbols            - Config symboles du preset actif
+/config/combos             - Config combinaisons du preset actif
+/config/bonuses            - Bibliothèque bonus (lecture seule)
+/config/jokers             - Bibliothèque jokers (lecture seule)
+/config/characters         - Bibliothèque personnages (lecture seule)
+/config/levels             - Config niveaux du preset actif
+/config/shop-rarities      - Config raretés du preset actif
+/config/object-selections  - Config objets par niveau (nouveau)
+/simulator                 - Interface simulation (preset actif)
+/stats                     - Statistiques par preset
+/presets                   - Gestion presets (CRUD)
 ```
 
 ## Workflow Typique
 
-### 1. Configuration
+### 1. Sélection de Preset
+```
+1. Page d'accueil affiche tous les presets
+2. Créer un nouveau preset OU sélectionner un existant
+3. Le preset devient actif
+4. Navigation débloquée vers Config et Simulator
+```
+
+### 2. Configuration
 ```
 1. Ajuster poids symboles (/config/symbols)
 2. Modifier multiplicateurs combos (/config/combos)
 3. Tweaker objectifs de niveaux (/config/levels)
 4. Ajuster probabilités boutique (/config/shop-rarities)
+5. Configurer objets par niveau (/config/object-selections)
 ```
 
-### 2. Test & Itération
+### 3. Simulation & Analyse
 ```
-1. Créer un preset de la config actuelle
-2. Lancer simulation avec 100-1000 itérations
-3. Analyser résultats (taux succès, niveaux atteints)
-4. Ajuster config et créer nouveau preset
-5. Comparer les résultats
+1. Lancer simulation (/simulator) - utilise preset actif
+2. Analyser résultats
+3. Consulter stats du preset (/stats?preset=<id>)
+4. Itérer sur la configuration
+5. Comparer avec d'autres presets
 ```
 
-### 3. Use Cases
-- **Game Design** : Tester balances de jeu
-- **Économie** : Simuler progression et gains
-- **Probabilités** : Vérifier distribution RNG
-- **Jokers/Bonus** : Tester synergies et effets
+### 4. Gestion des Presets
+```
+1. Dupliquer un preset pour tester des variantes
+2. Marquer favoris pour accès rapide
+3. Supprimer presets obsolètes
+4. Switcher entre presets pour tests comparatifs
+```
 
 ## Points Techniques Clés
 
@@ -141,13 +183,13 @@ Configurations chargées en mémoire au démarrage (`configCache`) pour éviter 
 Pas de `any`, types générés automatiquement de la DB.
 
 ### Performance
-- Cache mémoire pour configs
+- Cache mémoire pour configs (legacy)
 - SQLite optimisé (single file)
 - Simulations rapides (pure functions)
 
 ### Flexibilité
-- Tout est éditable via UI
-- Pas de valeurs hardcodées
+- Tout est éditable par preset
+- Isolation complète entre presets
 - Extensible facilement
 
 ## Commandes Essentielles
@@ -158,7 +200,7 @@ npm run build        # Build production
 npm run start        # Serveur production
 
 npm run db:push      # Sync schéma DB
-npm run db:seed      # Peupler données
+npm run db:seed      # Peupler données (crée preset par défaut)
 npm run db:reset     # Reset complet DB
 npm run db:studio    # UI Drizzle Studio
 
@@ -167,8 +209,8 @@ npm run typecheck    # Vérification TypeScript
 
 ## État Actuel
 
-**Version** : 1.3.0  
-**Statut** : Production Ready - Outil professionnel de game design  
-**Personnages** : Tous débloqués pour tests  
-**Configuration** : 100% éditable via UI  
+**Version** : 2.0.0
+**Statut** : Production Ready - Architecture Presets  
 **Presets** : Système complet et fonctionnel
+**Configuration** : 100% isolée par preset
+**Navigation** : Indicateur preset actif

@@ -6,9 +6,13 @@
 - **Drizzle ORM** - Type-safe avec migrations automatiques
 - **better-sqlite3** - Driver synchrone performant
 
-## Tables (12 au total)
+## Architecture Presets
 
-### Configuration de Jeu
+L'application utilise une architecture **centrée sur les presets**. Chaque preset contient sa propre configuration complète et isolée.
+
+## Tables (18 au total)
+
+### Configuration Globale (5 tables)
 
 #### `symbols` (9 symboles)
 ```typescript
@@ -16,15 +20,14 @@
   id: string (PK)
   name: string
   type: "basic" | "premium" | "bonus"
-  baseWeight: number       // Probabilité apparition
-  baseValue: number        // Valeur de base
-  baseMultiplier: number   // Multiplicateur
+  baseWeight: number       // Poids par défaut
+  baseValue: number        // Valeur par défaut
+  baseMultiplier: number   // Multiplicateur par défaut
   icon: string            // Emoji/icône
   color: string           // Couleur hex
 }
 ```
-**Éditable** : `/config/symbols`  
-**Usage** : Génération grille, calcul gains
+**Usage** : Bibliothèque de symboles. Valeurs par défaut copiées dans les presets.
 
 #### `combinations` (11 types)
 ```typescript
@@ -33,14 +36,13 @@
   name: string                // Code interne (H3, V3, etc.)
   displayName: string         // Nom affiché
   pattern: number[][]         // Positions dans grille 5×3
-  baseMultiplier: number      // Multiplicateur de gain
+  baseMultiplier: number      // Multiplicateur par défaut
   detectionOrder: number      // Ordre de détection (1-11)
-  isActive: boolean           // Actif/inactif
+  isActive: boolean           // Actif par défaut
   description: string
 }
 ```
-**Éditable** : `/config/combos`  
-**Usage** : Détection combos dans grille
+**Usage** : Bibliothèque de combos. Configs copiées dans les presets.
 
 #### `bonuses` (16 total)
 ```typescript
@@ -50,15 +52,15 @@
   description: string
   type: "starting" | "game"
   rarity: "common" | "uncommon" | "rare" | "epic" | "legendary"
-  effects: json[]             // Array d'effets
+  effects: json[]
   baseValue: number
-  scalingPerLevel: number     // Scaling par niveau
-  maxLevel: number            // Level cap (selon rareté)
+  scalingPerLevel: number
+  maxLevel: number
   isDestructible: boolean
 }
 ```
 **Types** : 4 de départ + 12 de partie  
-**Usage** : Récompenses, bonus équipés
+**Usage** : Bibliothèque, disponibilité contrôlée par preset
 
 #### `jokers` (25+)
 ```typescript
@@ -73,7 +75,7 @@
   tags: string[]
 }
 ```
-**Usage** : Shop, effets permanents
+**Usage** : Bibliothèque, disponibilité contrôlée par preset
 
 #### `characters` (3 personnages)
 ```typescript
@@ -81,36 +83,85 @@
   id: string (PK)
   name: string
   description: string
-  passiveEffect: json         // Effet passif
+  passiveEffect: json
   startingBonus: string       // FK vers bonuses
-  baseStats: json             // Chance, multiplicateur
-  scalingPerLevel: json       // Scaling stats
-  isUnlocked: boolean         // Tous à true (simulateur)
+  baseStats: json
+  scalingPerLevel: json
+  isUnlocked: boolean         // Tous à true
 }
 ```
 **Note** : Tous débloqués pour tests
 
-#### `level_configs` (21 niveaux)
+### Système de Presets (7 tables)
+
+#### `presets` - Métadonnées
 ```typescript
 {
   id: string (PK)
-  levelId: string (unique)    // "1-1", "1-2", etc.
-  world: number
-  stage: number
-  baseObjective: number       // Jetons requis (Ascension 0)
-  dollarReward: number        // $ gagnés
-  isBoss: boolean            // Stage 3 = boss
+  name: string
+  description: string
+  tags: string[]
+  isFavorite: boolean
 }
 ```
-**Éditable** : `/config/levels`  
-**Usage** : Objectifs ajustés automatiquement par ascension  
-**Formule** : `objective = baseObjective × (1 + ascension × 0.15)`
+**Usage** : Liste des presets, gestion CRUD
 
-#### `shop_rarity_configs` (7 mondes)
+#### `activePreset` - Preset actif (singleton)
+```typescript
+{
+  id: integer (PK) = 1        // Toujours 1
+  presetId: string (FK)       // Preset actuellement actif
+}
+```
+**Usage** : Tracking du preset en cours d'édition/simulation
+
+#### `presetSymbolConfigs` - Configs symboles
 ```typescript
 {
   id: string (PK)
-  world: number (unique)
+  presetId: string (FK → cascade delete)
+  symbolId: string (FK)
+  weight: number              // Poids custom
+  value: number               // Valeur custom
+  multiplier: number          // Multiplicateur custom
+}
+```
+**Usage** : Config symboles isolée par preset
+
+#### `presetComboConfigs` - Configs combos
+```typescript
+{
+  id: string (PK)
+  presetId: string (FK → cascade delete)
+  comboId: string (FK)
+  multiplier: number          // Multiplicateur custom
+  isActive: boolean          // Activation custom
+}
+```
+**Usage** : Config combos isolée par preset
+
+#### `presetLevelConfigs` - Configs niveaux
+```typescript
+{
+  id: string (PK)
+  presetId: string (FK → cascade delete)
+  levelId: string            // "1-1", "1-2", etc.
+  world: number
+  stage: number
+  baseObjective: number      // Jetons requis (Ascension 0)
+  dollarReward: number       // $ gagnés
+  isBoss: boolean           // Stage 3 = boss
+}
+```
+**Usage** : Objectifs/récompenses custom par preset  
+**Formule** : `objective = baseObjective × (1 + ascension × 0.15)`
+
+#### `presetShopRarityConfigs` - Configs raretés
+```typescript
+{
+  id: string (PK)
+  presetId: string (FK → cascade delete)
+  world: number
   commonWeight: number
   uncommonWeight: number
   rareWeight: number
@@ -118,47 +169,49 @@
   legendaryWeight: number
 }
 ```
-**Éditable** : `/config/shop-rarities`  
-**Usage** : Probabilités d'apparition jokers par rareté  
-**Note** : Poids ajustés automatiquement par ascension
+**Usage** : Probabilités raretés custom par preset
 
-### Progression & Historique
-
-#### `player_progress`
+#### `presetBonusAvailability` - Disponibilité bonus
 ```typescript
 {
   id: string (PK)
-  maxAscensionUnlocked: number    // Ascension max débloquée
+  presetId: string (FK → cascade delete)
+  bonusId: string (FK)
+  availableFrom: string      // "1-3", "2-3", etc. (boss)
+  availableUntil: string     // null = toujours après from
+}
+```
+**Usage** : Contrôle quels bonus proposés en récompense
+
+#### `presetJokerAvailability` - Disponibilité jokers
+```typescript
+{
+  id: string (PK)
+  presetId: string (FK → cascade delete)
+  jokerId: string (FK)
+  availableFrom: string      // "1-1", "1-2", etc.
+  availableUntil: string     // null = toujours après from
+}
+```
+**Usage** : Contrôle quels jokers en boutique
+
+### Progression & Historique (4 tables)
+
+#### `playerProgress`
+```typescript
+{
+  id: string (PK)
+  maxAscensionUnlocked: number
   totalRunsCompleted: number
   totalRunsAttempted: number
 }
 ```
-**Usage** : Progression globale du joueur
 
-#### `presets`
+#### `simulationRuns`
 ```typescript
 {
   id: string (PK)
-  name: string
-  description: string
-  tags: string[]
-  characterId: string (FK)
-  startingBonusId: string (FK)
-  ascension: number
-  symbolsConfig: json             // Record<string, number>
-  combosConfig: json              // Record<string, number>
-  simulationParams: json          // Config simulation
-  isFavorite: boolean
-}
-```
-**CRUD complet** : `/presets`  
-**Usage** : Sauvegarder/restaurer configurations
-
-#### `simulation_runs`
-```typescript
-{
-  id: string (PK)
-  presetId: string (FK, nullable)
+  presetId: string (FK)      // ⭐ Lié au preset
   characterId: string (FK)
   ascension: number
   mode: "auto" | "manual"
@@ -171,12 +224,12 @@
   avgDollars: number
   completedFully: boolean
   status: "running" | "completed" | "failed"
-  duration: number (ms)
+  duration: number
 }
 ```
-**Usage** : Historique et analytics
+**Usage** : Historique avec traçabilité preset
 
-#### `simulation_steps`
+#### `simulationSteps`
 ```typescript
 {
   id: string (PK)
@@ -187,7 +240,7 @@
   level: string
   tokensBefore: number
   dollarsBefore: number
-  grid: json (si spin)
+  grid: json
   combosDetected: json
   tokensGained: number
   purchasedJoker: string
@@ -196,9 +249,8 @@
   dollarsAfter: number
 }
 ```
-**Usage** : Replay détaillé, analyse fine
 
-#### `global_stats`
+#### `globalStats`
 ```typescript
 {
   id: "global" (singleton)
@@ -212,47 +264,65 @@
   topJoker: string
 }
 ```
-**Usage** : Dashboard, méta-analyse
 
-## Cache de Configuration
+### Legacy (2 tables - conservées pour cache)
 
-### `configCache` (`app/lib/utils/config-cache.ts`)
-
-**Pourquoi ?** Éviter les requêtes DB pendant les simulations (perf critique).
-
-```typescript
-// Chargé automatiquement au démarrage côté serveur
-await configCache.initialize();
-
-// Utilisation
-const objective = configCache.getLevelObjective("1-1", ascension);
-const reward = configCache.getLevelReward("1-1");
-const weights = configCache.getShopRarityWeights(world);
-```
-
-**Méthodes** :
-- `getLevelObjective(levelId, ascension)` - Objectif avec multiplicateur
-- `getLevelReward(levelId)` - Récompense en dollars
-- `isBossLevel(levelId)` - Check depuis DB
-- `getShopRarityWeights(world)` - Poids raretés
-- `reload()` - Recharger après modifications UI
-- `updateLevelConfig(levelId)` - MAJ cache d'un niveau
-- `updateShopRarityConfig(world)` - MAJ cache d'un monde
+#### `levelConfigs` et `shopRarityConfigs`
+Configs globales utilisées par le `configCache` du moteur de simulation.  
+**Note** : À terme, le moteur devrait utiliser les configs preset directement.
 
 ## Queries Organisées
 
 ```
 db/queries/
-├── level-configs.ts       - CRUD level configs
-├── shop-rarity-configs.ts - CRUD shop configs
-├── symbols.ts             - CRUD symboles
-├── combos.ts              - CRUD combinaisons
-├── bonuses.ts             - CRUD bonus
-├── jokers.ts              - CRUD jokers
-├── characters.ts          - CRUD personnages
-├── progress.ts            - Get/update progression
-├── presets.ts             - CRUD presets
-└── simulations.ts         - CRUD runs/steps
+├── presets.ts                    - CRUD presets
+├── active-preset.ts              - Get/set preset actif
+├── preset-symbol-configs.ts      - CRUD configs symboles
+├── preset-combo-configs.ts       - CRUD configs combos
+├── preset-level-configs.ts       - CRUD configs niveaux
+├── preset-shop-rarity-configs.ts - CRUD configs raretés
+├── preset-bonus-availability.ts  - CRUD disponibilité bonus
+├── preset-joker-availability.ts  - CRUD disponibilité jokers
+├── symbols.ts                    - Bibliothèque symboles
+├── combos.ts                     - Bibliothèque combos
+├── bonuses.ts                    - Bibliothèque bonus
+├── jokers.ts                     - Bibliothèque jokers
+├── characters.ts                 - Bibliothèque personnages
+├── progress.ts                   - Get/update progression
+└── simulations.ts                - CRUD runs/steps
+```
+
+## Workflow de Données
+
+### Création d'un Preset
+```
+1. createPreset(metadata)
+2. Copie valeurs par défaut depuis tables globales
+3. Initialise preset*Configs avec baseWeight, baseMultiplier, etc.
+4. Preset prêt à être configuré
+```
+
+### Activation d'un Preset
+```
+1. setActivePreset(presetId)
+2. Update table activePreset (singleton)
+3. Routes /config/* chargent depuis ce preset
+4. Simulateur utilise ce preset
+```
+
+### Simulation
+```
+1. Loader simulateur : requireActivePreset()
+2. Charge configs depuis preset_*_configs
+3. Lance simulation avec ces configs
+4. Sauvegarde run avec presetId
+```
+
+### Statistiques
+```
+1. getSimulationRunsByPreset(presetId)
+2. Calcule métriques spécifiques au preset
+3. Comparaison entre presets possible
 ```
 
 ## Seeds
@@ -262,15 +332,16 @@ Données initiales dans `db/seed/`:
 - `combos.seed.ts` - 11 combinaisons
 - `bonuses.seed.ts` - 16 bonus
 - `jokers.seed.ts` - 25+ jokers
-- `characters.seed.ts` - 3 personnages (tous débloqués)
+- `characters.seed.ts` - 3 personnages
 - `level-configs.seed.ts` - 21 niveaux
 - `shop-rarity-configs.seed.ts` - 7 configs monde
+- `preset-default.seed.ts` - **Preset par défaut + activation**
 
 ## Commandes
 
 ```bash
-npm run db:push      # Synchroniser schéma → DB
-npm run db:seed      # Peupler avec données initiales
+npm run db:push      # Sync schéma → DB
+npm run db:seed      # Peupler + créer preset par défaut
 npm run db:reset     # Vider + re-seed
 npm run db:studio    # Interface Drizzle Studio
 ```
@@ -279,7 +350,12 @@ npm run db:studio    # Interface Drizzle Studio
 
 Types générés automatiquement par Drizzle :
 ```typescript
-import type { Symbol, Combination, Bonus, Joker, Character } from "~/db/schema";
+import type { 
+  Preset, 
+  PresetSymbolConfig,
+  PresetComboConfig,
+  // etc.
+} from "~/db/schema";
 ```
 
 Chaque table a ses types `Select` (lecture) et `Insert` (création).

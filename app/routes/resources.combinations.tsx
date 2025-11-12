@@ -101,7 +101,7 @@ export default function ResourcesCombinations() {
         />
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="border rounded-lg divide-y">
         {combinations.map((combo) => (
           <div key={combo.id}>
             {editingId === combo.id ? (
@@ -111,7 +111,7 @@ export default function ResourcesCombinations() {
                 intent="update"
               />
             ) : (
-              <ComboCard
+              <ComboListItem
                 combo={combo}
                 onEdit={() => setEditingId(combo.id)}
               />
@@ -123,7 +123,7 @@ export default function ResourcesCombinations() {
   );
 }
 
-function ComboCard({ combo, onEdit }: { combo: any; onEdit: () => void }) {
+function ComboListItem({ combo, onEdit }: { combo: any; onEdit: () => void }) {
   const fetcher = useFetcher();
 
   const handleDelete = () => {
@@ -136,31 +136,53 @@ function ComboCard({ combo, onEdit }: { combo: any; onEdit: () => void }) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{combo.displayName}</CardTitle>
-          <Badge variant={combo.isActive ? "default" : "secondary"}>
-            {combo.isActive ? "Actif" : "Inactif"}
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2 text-sm">
+    <div className="p-6 hover:bg-accent/50 transition-colors">
+      <div className="flex items-start justify-between gap-6">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3 mb-2">
+            <h3 className="font-semibold text-lg">{combo.displayName}</h3>
+            <Badge variant={combo.isActive ? "default" : "secondary"}>
+              {combo.isActive ? "Actif" : "Inactif"}
+            </Badge>
+          </div>
           {combo.description && (
-            <p className="text-muted-foreground text-xs">{combo.description}</p>
+            <p className="text-muted-foreground text-sm mb-3">{combo.description}</p>
           )}
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Multiplicateur:</span>
-            <span className="font-medium">×{combo.baseMultiplier}</span>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Multiplicateur:</span>
+              <span className="font-medium">×{combo.baseMultiplier}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Pattern:</span>
+              <span className="font-medium">{combo.pattern.length} ligne(s)</span>
+            </div>
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Pattern:</span>
-            <span className="font-medium text-xs">{combo.pattern.length} ligne(s)</span>
-          </div>
+          {/* Pattern Preview */}
+          {combo.pattern && combo.pattern.length > 0 && (
+            <div className="mt-3 p-3 bg-muted/50 rounded-md inline-block">
+              <div className="space-y-1">
+                {combo.pattern.map((row: any, i: number) => (
+                  <div key={i} className="flex gap-1">
+                    {row.map((cell: any, j: number) => (
+                      <div
+                        key={j}
+                        className={`w-6 h-6 rounded border text-xs flex items-center justify-center font-mono ${
+                          cell ? "bg-primary text-primary-foreground" : "bg-background"
+                        }`}
+                        title={cell || "vide"}
+                      >
+                        {cell ? "■" : "□"}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-        <div className="flex gap-2 mt-4">
-          <Button size="sm" variant="outline" onClick={onEdit} className="flex-1">
+        <div className="flex gap-2 shrink-0">
+          <Button size="sm" variant="outline" onClick={onEdit}>
             <Edit2 className="w-3 h-3 mr-1" />
             Modifier
           </Button>
@@ -173,8 +195,8 @@ function ComboCard({ combo, onEdit }: { combo: any; onEdit: () => void }) {
             <Trash2 className="w-3 h-3" />
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 

@@ -106,7 +106,7 @@ export default function ResourcesBonuses() {
         />
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="border rounded-lg divide-y">
         {bonuses.map((bonus) => (
           <div key={bonus.id}>
             {editingId === bonus.id ? (
@@ -117,7 +117,7 @@ export default function ResourcesBonuses() {
                 intent="update"
               />
             ) : (
-              <BonusCard bonus={bonus} onEdit={() => setEditingId(bonus.id)} />
+              <BonusListItem bonus={bonus} onEdit={() => setEditingId(bonus.id)} />
             )}
           </div>
         ))}
@@ -126,7 +126,7 @@ export default function ResourcesBonuses() {
   );
 }
 
-function BonusCard({ bonus, onEdit }: { bonus: any; onEdit: () => void }) {
+function BonusListItem({ bonus, onEdit }: { bonus: any; onEdit: () => void }) {
   const fetcher = useFetcher();
 
   const handleDelete = () => {
@@ -136,36 +136,34 @@ function BonusCard({ bonus, onEdit }: { bonus: any; onEdit: () => void }) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{bonus.name}</CardTitle>
-          <div className="flex gap-1">
+    <div className="p-4 hover:bg-accent/50 transition-colors">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3 mb-2">
+            <h3 className="font-semibold text-lg">{bonus.name}</h3>
             <Badge className={rarityColors[bonus.rarity]}>{bonus.rarity}</Badge>
             <Badge variant={bonus.type === "starting" ? "default" : "secondary"}>
               {bonus.type}
             </Badge>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2 text-sm">
-          <p className="text-muted-foreground text-xs mb-2">{bonus.description}</p>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Effets:</span>
-            <span className="font-medium text-xs">{bonus.effects.length} effet(s)</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Valeur de base:</span>
-            <span className="font-medium">{bonus.baseValue}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Max level:</span>
-            <span className="font-medium">{bonus.maxLevel}</span>
+          <p className="text-muted-foreground text-sm mb-3">{bonus.description}</p>
+          <div className="flex gap-6 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Effets:</span>
+              <span className="font-medium">{bonus.effects.length}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Valeur:</span>
+              <span className="font-medium">{bonus.baseValue}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Max level:</span>
+              <span className="font-medium">{bonus.maxLevel}</span>
+            </div>
           </div>
         </div>
-        <div className="flex gap-2 mt-4">
-          <Button size="sm" variant="outline" onClick={onEdit} className="flex-1">
+        <div className="flex gap-2 shrink-0">
+          <Button size="sm" variant="outline" onClick={onEdit}>
             <Edit2 className="w-3 h-3 mr-1" />
             Modifier
           </Button>
@@ -178,8 +176,8 @@ function BonusCard({ bonus, onEdit }: { bonus: any; onEdit: () => void }) {
             <Trash2 className="w-3 h-3" />
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 

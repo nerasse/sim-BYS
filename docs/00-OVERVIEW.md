@@ -53,11 +53,11 @@ Remix utilise le routing basé sur les fichiers. Chaque fichier dans `app/routes
 - **Configuration isolée** : Chaque preset a ses propres configs
 - **Favoris et tags** : Organisation facilitée
 
-### ⚡ Système d'Effets (Fondation)
-- **Bibliothèque centralisée** : Effets réutilisables (multiplicateurs, additifs, triggers)
+### ⚡ Système d'Effets (Hard-codés)
+- **Bibliothèque hard-codée** : Effets liés au moteur de simulation
+- **Lecture seule** : Pas de CRUD (modification = adaptation code simulation)
 - **Référencés par** : Bonus, jokers, personnages
-- **UI optimisée** : Liste/table pour édition rapide
-- **Dropdown de sélection** : Dans tous les objets (plus de JSON manuel)
+- **Sélection** : Dropdown dans objets pour utiliser effets existants
 
 ### ⚙️ Configuration par Preset
 - **Symboles** : Poids, valeurs, multiplicateurs
@@ -93,12 +93,12 @@ Remix utilise le routing basé sur les fichiers. Chaque fichier dans `app/routes
 
 #### Configuration Globale
 ```
-effects             - Bibliothèque centralisée d'effets réutilisables
+effects             - Effets hard-codés (lecture seule, liés simulation)
 symbols             - 9 symboles (basiques, premium, bonus)
 combinations        - 11 types de combos
 bonuses             - 16 bonus (4 départ + 12 partie)
 jokers              - 25+ jokers avec effets
-characters          - 3 personnages (tous débloqués)
+characters          - Personnages (effets passifs + bonus départ multiples)
 ```
 
 #### Système de Presets
@@ -135,7 +135,7 @@ shopRarityConfigs   - Configs raretés globales (cache)
 /resources/object-selections       - Sélections objets (liste)
 /resources/object-selections/:id   - Config objets par niveau
 /config/*                          - Config preset (symboles, combos, niveaux, shop, settings)
-/effects                           - Bibliothèque effets
+/effects                           - Bibliothèque effets (lecture seule)
 /resources/*                       - Bibliothèques (symboles, combos, bonus, jokers, personnages, niveaux)
 /simulator                         - Simulation preset actif
 /stats                             - Stats par preset

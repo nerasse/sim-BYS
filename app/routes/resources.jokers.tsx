@@ -105,7 +105,7 @@ export default function ResourcesJokers() {
         />
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="border rounded-lg divide-y">
         {jokers.map((joker) => (
           <div key={joker.id}>
             {editingId === joker.id ? (
@@ -116,7 +116,7 @@ export default function ResourcesJokers() {
                 intent="update"
               />
             ) : (
-              <JokerCard joker={joker} onEdit={() => setEditingId(joker.id)} />
+              <JokerListItem joker={joker} onEdit={() => setEditingId(joker.id)} />
             )}
           </div>
         ))}
@@ -125,7 +125,7 @@ export default function ResourcesJokers() {
   );
 }
 
-function JokerCard({ joker, onEdit }: { joker: any; onEdit: () => void }) {
+function JokerListItem({ joker, onEdit }: { joker: any; onEdit: () => void }) {
   const fetcher = useFetcher();
 
   const handleDelete = () => {
@@ -135,30 +135,30 @@ function JokerCard({ joker, onEdit }: { joker: any; onEdit: () => void }) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{joker.name}</CardTitle>
-          <Badge className={rarityColors[joker.rarity]}>{joker.rarity}</Badge>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2 text-sm">
-          <p className="text-muted-foreground text-xs mb-2">{joker.description}</p>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Prix de base:</span>
-            <span className="font-medium">{joker.basePrice}$</span>
+    <div className="p-4 hover:bg-accent/50 transition-colors">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3 mb-2">
+            <h3 className="font-semibold text-lg">{joker.name}</h3>
+            <Badge className={rarityColors[joker.rarity]}>{joker.rarity}</Badge>
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Valeur vente:</span>
-            <span className="font-medium">{joker.sellValue}$</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Effets:</span>
-            <span className="font-medium text-xs">{joker.effects.length} effet(s)</span>
+          <p className="text-muted-foreground text-sm mb-3">{joker.description}</p>
+          <div className="flex gap-6 text-sm mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Prix:</span>
+              <span className="font-medium">{joker.basePrice}$</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Vente:</span>
+              <span className="font-medium">{joker.sellValue}$</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Effets:</span>
+              <span className="font-medium">{joker.effects.length}</span>
+            </div>
           </div>
           {joker.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
+            <div className="flex flex-wrap gap-1">
               {joker.tags.map((tag: string) => (
                 <Badge key={tag} variant="outline" className="text-xs">
                   {tag}
@@ -167,8 +167,8 @@ function JokerCard({ joker, onEdit }: { joker: any; onEdit: () => void }) {
             </div>
           )}
         </div>
-        <div className="flex gap-2 mt-4">
-          <Button size="sm" variant="outline" onClick={onEdit} className="flex-1">
+        <div className="flex gap-2 shrink-0">
+          <Button size="sm" variant="outline" onClick={onEdit}>
             <Edit2 className="w-3 h-3 mr-1" />
             Modifier
           </Button>
@@ -181,8 +181,8 @@ function JokerCard({ joker, onEdit }: { joker: any; onEdit: () => void }) {
             <Trash2 className="w-3 h-3" />
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 

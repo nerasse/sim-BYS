@@ -124,20 +124,20 @@ export const characters = sqliteTable("characters", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  passiveEffect: text("passive_effect", { mode: "json" })
-    .$type<{ type: string; value: number }>()
-    .notNull(),
-  startingBonus: text("starting_bonus").notNull(),
+  passiveEffects: text("passive_effects", { mode: "json" })
+    .$type<Array<{ type: string; value: number }>>()
+    .notNull()
+    .default(sql`'[]'`),
+  startingBonuses: text("starting_bonuses", { mode: "json" })
+    .$type<string[]>()
+    .notNull()
+    .default(sql`'[]'`),
   baseStats: text("base_stats", { mode: "json" })
     .$type<{ chance?: number; multiplier?: number }>()
     .notNull(),
   scalingPerLevel: text("scaling_per_level", { mode: "json" })
     .$type<{ chance?: number; multiplier?: number }>()
     .notNull(),
-  unlockCondition: text("unlock_condition"),
-  isUnlocked: integer("is_unlocked", { mode: "boolean" })
-    .notNull()
-    .default(true),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),

@@ -80,7 +80,7 @@ export default function ResourcesLevels() {
         <LevelForm onCancel={() => setShowCreateForm(false)} intent="create" />
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="border rounded-lg divide-y">
         {levels
           .sort((a, b) => {
             if (a.world !== b.world) return a.world - b.world;
@@ -95,7 +95,7 @@ export default function ResourcesLevels() {
                   intent="update"
                 />
               ) : (
-                <LevelCard level={level} onEdit={() => setEditingId(level.id)} />
+                <LevelListItem level={level} onEdit={() => setEditingId(level.id)} />
               )}
             </div>
           ))}
@@ -104,7 +104,7 @@ export default function ResourcesLevels() {
   );
 }
 
-function LevelCard({ level, onEdit }: { level: any; onEdit: () => void }) {
+function LevelListItem({ level, onEdit }: { level: any; onEdit: () => void }) {
   const fetcher = useFetcher();
 
   const handleDelete = () => {
@@ -114,31 +114,31 @@ function LevelCard({ level, onEdit }: { level: any; onEdit: () => void }) {
   };
 
   return (
-    <Card className={level.isBoss ? "border-yellow-500 border-2" : ""}>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{level.levelId}</CardTitle>
-          {level.isBoss && (
-            <Badge className="bg-yellow-500">
-              <Crown className="w-3 h-3 mr-1" />
-              Boss
-            </Badge>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Objectif:</span>
-            <span className="font-medium">{level.baseObjective?.toLocaleString() || 0} jetons</span>
+    <div className={`p-4 hover:bg-accent/50 transition-colors ${level.isBoss ? "bg-yellow-50/50 dark:bg-yellow-950/20" : ""}`}>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3 mb-2">
+            <h3 className="font-semibold text-lg">{level.levelId}</h3>
+            {level.isBoss && (
+              <Badge className="bg-yellow-500">
+                <Crown className="w-3 h-3 mr-1" />
+                Boss
+              </Badge>
+            )}
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Récompense:</span>
-            <span className="font-medium">{level.dollarReward || 0}$</span>
+          <div className="flex gap-6 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Objectif:</span>
+              <span className="font-medium">{level.baseObjective?.toLocaleString() || 0} jetons</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Récompense:</span>
+              <span className="font-medium">{level.dollarReward || 0}$</span>
+            </div>
           </div>
         </div>
-        <div className="flex gap-2 mt-4">
-          <Button size="sm" variant="outline" onClick={onEdit} className="flex-1">
+        <div className="flex gap-2 shrink-0">
+          <Button size="sm" variant="outline" onClick={onEdit}>
             <Edit2 className="w-3 h-3 mr-1" />
             Modifier
           </Button>
@@ -151,8 +151,8 @@ function LevelCard({ level, onEdit }: { level: any; onEdit: () => void }) {
             <Trash2 className="w-3 h-3" />
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 

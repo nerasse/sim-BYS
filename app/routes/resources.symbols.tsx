@@ -103,7 +103,7 @@ export default function ResourcesSymbols() {
         />
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="border rounded-lg divide-y">
         {symbols.map((symbol) => (
           <div key={symbol.id}>
             {editingId === symbol.id ? (
@@ -113,7 +113,7 @@ export default function ResourcesSymbols() {
                 intent="update"
               />
             ) : (
-              <SymbolCard
+              <SymbolListItem
                 symbol={symbol}
                 onEdit={() => setEditingId(symbol.id)}
               />
@@ -125,7 +125,7 @@ export default function ResourcesSymbols() {
   );
 }
 
-function SymbolCard({ symbol, onEdit }: { symbol: any; onEdit: () => void }) {
+function SymbolListItem({ symbol, onEdit }: { symbol: any; onEdit: () => void }) {
   const fetcher = useFetcher();
 
   const handleDelete = () => {
@@ -138,34 +138,32 @@ function SymbolCard({ symbol, onEdit }: { symbol: any; onEdit: () => void }) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{symbol.name}</CardTitle>
-          <div className="flex items-center gap-2">
+    <div className="p-4 hover:bg-accent/50 transition-colors">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3 mb-2">
+            <h3 className="font-semibold text-lg">{symbol.name}</h3>
             <Badge className={typeColors[symbol.type]}>
               {symbol.type}
             </Badge>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Poids:</span>
-            <span className="font-medium">{symbol.baseWeight}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Valeur:</span>
-            <span className="font-medium">{symbol.baseValue}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Multiplicateur:</span>
-            <span className="font-medium">×{symbol.baseMultiplier}</span>
+          <div className="flex gap-6 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Poids:</span>
+              <span className="font-medium">{symbol.baseWeight}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Valeur:</span>
+              <span className="font-medium">{symbol.baseValue}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Multiplicateur:</span>
+              <span className="font-medium">×{symbol.baseMultiplier}</span>
+            </div>
           </div>
         </div>
-        <div className="flex gap-2 mt-4">
-          <Button size="sm" variant="outline" onClick={onEdit} className="flex-1">
+        <div className="flex gap-2 shrink-0">
+          <Button size="sm" variant="outline" onClick={onEdit}>
             <Edit2 className="w-3 h-3 mr-1" />
             Modifier
           </Button>
@@ -178,8 +176,8 @@ function SymbolCard({ symbol, onEdit }: { symbol: any; onEdit: () => void }) {
             <Trash2 className="w-3 h-3" />
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 

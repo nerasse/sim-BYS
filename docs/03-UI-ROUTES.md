@@ -33,7 +33,7 @@ export async function action({ request }: ActionFunctionArgs) {
 /config/levels             - Config niveaux du preset actif
 /config/shop-rarities      - Config raretés boutique du preset actif
 /config/preset-settings    - Paramètres preset + lien sous-preset
-/effects                   - ⚡ Bibliothèque effets (liste, CRUD)
+/effects                   - ⚡ Bibliothèque effets (lecture seule, hard-codés)
 /resources/symbols         - Bibliothèque symboles (CRUD)
 /resources/combinations    - Bibliothèque combos (CRUD)
 /resources/bonuses         - Bibliothèque bonus (CRUD avec dropdown effets)
@@ -122,18 +122,18 @@ export async function action({ request }: ActionFunctionArgs) {
 
 ---
 
-### Effets (`effects.tsx`) **ÉDITABLE** ⚡
+### Effets (`effects.tsx`) **LECTURE SEULE** ⚡
 
 **Loader** : `getAllEffects()`  
-**Actions** : `create`, `update`, `delete`
+**Actions** : Aucune (hard-codés, liés au moteur simulation)
 
 **Display** :
-- **Table/liste** (non cards) pour performance
+- **Cibles d'effets** : Section collapsible (réduite par défaut)
+- **Table liste** en lecture seule
 - Colonnes : Nom, Code, Type, Catégorie, Cible, Valeur défaut
-- Édition inline dans la table
-- Formulaire création compact
+- ⚠️ Warning : Modification nécessite adaptation code simulation
 
-**Usage** : Fondation pour bonus, jokers, personnages
+**Usage** : Référencés par bonus, jokers, personnages (dropdown sélection)
 
 ---
 

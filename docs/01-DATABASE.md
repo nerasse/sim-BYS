@@ -94,20 +94,19 @@ L'application utilise une architecture **centrée sur les presets**. Chaque pres
 ```
 **Usage** : Bibliothèque, disponibilité contrôlée par preset
 
-#### `characters` (3 personnages)
+#### `characters` - Personnages
 ```typescript
 {
   id: string (PK)
   name: string
   description: string
-  passiveEffect: json
-  startingBonus: string       // FK vers bonuses
+  passiveEffects: json        // Array [{type, value}]
+  startingBonuses: json       // Array [bonusId1, bonusId2]
   baseStats: json
   scalingPerLevel: json
-  isUnlocked: boolean         // Tous à true
 }
 ```
-**Note** : Tous débloqués pour tests
+**Note** : Multiples effets passifs et bonus de départ par personnage
 
 ### Sous-Presets d'Objets (3 tables)
 

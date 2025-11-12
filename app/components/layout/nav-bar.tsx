@@ -1,4 +1,5 @@
-import { Link } from "@remix-run/react";
+import { Link, useFetcher, useNavigate } from "@remix-run/react";
+import { useEffect } from "react";
 import { cn } from "~/lib/utils";
 import { Home, Settings, Gamepad2, TrendingUp, Save, Database, ChevronDown, Zap } from "lucide-react";
 import { Badge } from "~/components/ui/badge";
@@ -11,15 +12,6 @@ import {
 import { Button } from "~/components/ui/button";
 import type { Preset } from "~/db/schema";
 
-const navItems = [
-  { href: "/", label: "Accueil", Icon: Home },
-  { href: "/config/symbols", label: "Configuration", Icon: Settings },
-  { href: "/effects", label: "Effets", Icon: Zap },
-  { href: "/simulator", label: "Simulateur", Icon: Gamepad2 },
-  { href: "/stats", label: "Statistiques", Icon: TrendingUp },
-  { href: "/presets", label: "Presets", Icon: Save },
-];
-
 const resourceItems = [
   { href: "/resources/symbols", label: "Symboles" },
   { href: "/resources/combinations", label: "Combinaisons" },
@@ -27,7 +19,6 @@ const resourceItems = [
   { href: "/resources/jokers", label: "Jokers" },
   { href: "/resources/characters", label: "Personnages" },
   { href: "/resources/levels", label: "Niveaux" },
-  { href: "/resources/object-selections", label: "Sélections d'Objets" },
 ];
 
 interface NavBarProps {
@@ -36,18 +27,21 @@ interface NavBarProps {
 }
 
 export function NavBar({ activePreset, allPresets }: NavBarProps) {
-  const handlePresetChange = async (presetId: string) => {
-    // Call API to change active preset
-    await fetch("/api/set-active-preset", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ presetId }),
-    });
-    
-    // Reload the page to update all data
-    window.location.reload();
+  const fetcher = useFetcher();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (fetcher.state === "idle" && fetcher.data) {
+      // Reload to update all data with new preset
+      window.location.reload();
+    }
+  }, [fetcher.state, fetcher.data, navigate]);
+
+  const handlePresetChange = (presetId: string) => {
+    fetcher.submit(
+      { presetId },
+      { method: "post", action: "/api/set-active-preset" }
+    );
   };
 
   return (
@@ -64,20 +58,31 @@ export function NavBar({ activePreset, allPresets }: NavBarProps) {
             </Link>
 
             <div className="hidden md:flex gap-1 items-center">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={cn(
-                    "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
-                    "hover:bg-accent hover:text-accent-foreground"
-                  )}
-                >
-                  <item.Icon className="w-4 h-4" />
-                  {item.label}
-                </Link>
-              ))}
+              {/* Accueil */}
+              <Link
+                to="/"
+                className={cn(
+                  "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
+                  "hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <Home className="w-4 h-4" />
+                Accueil
+              </Link>
               
+              {/* Effets */}
+              <Link
+                to="/effects"
+                className={cn(
+                  "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
+                  "hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <Zap className="w-4 h-4" />
+                Effets
+              </Link>
+
+              {/* Ressources Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
@@ -89,7 +94,7 @@ export function NavBar({ activePreset, allPresets }: NavBarProps) {
                     <ChevronDown className="w-3 h-3" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="start" className="w-56">
                   {resourceItems.map((item) => (
                     <DropdownMenuItem key={item.href} asChild>
                       <Link to={item.href} className="cursor-pointer">
@@ -99,10 +104,62 @@ export function NavBar({ activePreset, allPresets }: NavBarProps) {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              <div className="w-px h-6 bg-border mx-2" />
+
+              {/* Sélections */}
+              <Link
+                to="/resources/object-selections"
+                className={cn(
+                  "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
+                  "hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <Settings className="w-4 h-4" />
+                Sélections
+              </Link>
+
+              <div className="w-px h-6 bg-border mx-2" />
+
+              {/* Presets */}
+              <Link
+                to="/presets"
+                className={cn(
+                  "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
+                  "hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <Save className="w-4 h-4" />
+                Presets
+              </Link>
+
+              <div className="w-px h-6 bg-border mx-2" />
+
+              {/* Simulateur & Stats */}
+              <Link
+                to="/simulator"
+                className={cn(
+                  "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
+                  "hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <Gamepad2 className="w-4 h-4" />
+                Simulateur
+              </Link>
+              <Link
+                to="/stats"
+                className={cn(
+                  "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
+                  "hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <TrendingUp className="w-4 h-4" />
+                Stats
+              </Link>
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="flex items-center gap-2">
@@ -135,6 +192,14 @@ export function NavBar({ activePreset, allPresets }: NavBarProps) {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
+            
+            {activePreset && (
+              <Link to="/config">
+                <Button variant="ghost" size="icon" title="Configurer le preset">
+                  <Settings className="w-4 h-4" />
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>

@@ -1,14 +1,15 @@
 import type { LoaderFunctionArgs, ActionFunctionArgs } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { useLoaderData, Form, Link } from "@remix-run/react";
+import { useLoaderData, useFetcher, Link } from "@remix-run/react";
 import { getAllPresets, createPreset, deletePreset, updatePreset, duplicatePreset } from "~/db/queries/presets";
 import { getActivePreset, setActivePreset } from "~/db/queries/active-preset";
+import { useModal } from "~/contexts/modal-context";
 import { PageHeader } from "~/components/layout/page-header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardContent } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
-import { Input } from "~/components/ui/input";
-import { Save, Plus, Trash2, Star, Copy, Settings } from "lucide-react";
+import { Save, Plus, Trash2, Star, Copy, Settings, ChevronRight } from "lucide-react";
+import React from "react";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const [presets, activePresetData] = await Promise.all([
@@ -43,14 +44,14 @@ export async function action({ request }: ActionFunctionArgs) {
     const name = formData.get("name") as string || "Nouveau Preset";
     const description = formData.get("description") as string || "Configuration personnalisée";
     
-    await createPreset({
+    const newPreset = await createPreset({
       name,
       description,
       tags: ["custom"],
       isFavorite: false,
     });
 
-    return json({ success: true });
+    return json({ success: true, preset: newPreset });
   }
 
   if (intent === "duplicate") {
@@ -72,6 +73,79 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function Presets() {
   const { presets, activePresetId } = useLoaderData<typeof loader>();
+  const modal = useModal();
+  const fetcher = useFetcher();
+
+  const handleCreatePreset = async () => {
+    const name = await modal.prompt({
+      title: "Créer un nouveau preset",
+      description: "Donnez un nom à votre preset",
+      placeholder: "Nom du preset",
+      defaultValue: "Nouveau Preset",
+      confirmText: "Créer",
+      cancelText: "Annuler",
+    });
+
+    if (!name) return;
+
+    fetcher.submit(
+      { intent: "create", name, description: "Configuration personnalisée" },
+      { method: "post" }
+    );
+  };
+
+  const handleDuplicate = async (preset: any) => {
+    const name = await modal.prompt({
+      title: "Dupliquer le preset",
+      description: `Donnez un nom à la copie de "${preset.name}"`,
+      placeholder: "Nom du nouveau preset",
+      defaultValue: `Copie de ${preset.name}`,
+      confirmText: "Dupliquer",
+      cancelText: "Annuler",
+    });
+
+    if (!name) return;
+
+    fetcher.submit(
+      { intent: "duplicate", id: preset.id, name },
+      { method: "post" }
+    );
+  };
+
+  const handleDelete = async (preset: any) => {
+    const confirmed = await modal.confirm({
+      title: "Supprimer le preset ?",
+      description: `Êtes-vous sûr de vouloir supprimer "${preset.name}" ?\n\nCette action est irréversible et supprimera toutes les configurations associées.`,
+      confirmText: "Supprimer",
+      cancelText: "Annuler",
+      variant: "destructive",
+    });
+
+    if (!confirmed) return;
+
+    fetcher.submit(
+      { intent: "delete", id: preset.id },
+      { method: "post" }
+    );
+  };
+
+  const handleToggleFavorite = (preset: any) => {
+    fetcher.submit(
+      { intent: "toggleFavorite", id: preset.id, isFavorite: preset.isFavorite.toString() },
+      { method: "post" }
+    );
+  };
+
+  const handleSetActive = (preset: any) => {
+    fetcher.submit(
+      { intent: "setActive", id: preset.id },
+      { method: "post" }
+    );
+  };
+
+  // Séparer favoris et non-favoris
+  const favoritePresets = presets.filter((p) => p.isFavorite);
+  const otherPresets = presets.filter((p) => !p.isFavorite);
 
   return (
     <div>
@@ -82,24 +156,12 @@ export default function Presets() {
             Presets
           </div>
         }
-        description="Gestion des configurations sauvegardées - Créez, dupliquez et gérez vos presets"
+        description="Gestion des configurations sauvegardées"
         actions={
-          <Form method="post" className="flex gap-2 items-end">
-            <div>
-              <Input
-                type="text"
-                name="name"
-                placeholder="Nom du preset"
-                defaultValue="Nouveau Preset"
-                className="w-48"
-              />
-            </div>
-            <input type="hidden" name="intent" value="create" />
-            <Button type="submit">
-              <Plus className="w-4 h-4 mr-2" />
-              Créer
-            </Button>
-          </Form>
+          <Button onClick={handleCreatePreset}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nouveau Preset
+          </Button>
         }
       />
 
@@ -107,174 +169,156 @@ export default function Presets() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center text-muted-foreground py-12">
-              <div className="flex justify-center mb-4">
-                <Save className="w-24 h-24" />
-              </div>
-              <p className="mb-4">Aucun preset sauvegardé</p>
+              <Save className="w-24 h-24 mx-auto mb-4 opacity-20" />
+              <p className="mb-2 text-lg font-medium">Aucun preset disponible</p>
               <p className="text-sm mb-6">
-                Les presets vous permettent de sauvegarder des configurations complètes
-                <br />
-                (symboles, combos, niveaux, rarités boutique) pour tester différentes configurations.
+                Créez votre premier preset pour commencer
               </p>
-              <Form method="post">
-                <input type="hidden" name="intent" value="create" />
-                <input type="hidden" name="name" value="Mon premier preset" />
-                <Button type="submit" size="lg">
-                  <Plus className="w-5 h-5 mr-2" />
-                  Créer votre premier preset
-                </Button>
-              </Form>
+              <Button onClick={handleCreatePreset}>
+                <Plus className="w-4 h-4 mr-2" />
+                Créer un preset
+              </Button>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {presets.map((preset) => {
-            const isActive = preset.id === activePresetId;
-            
-            return (
-              <Card
-                key={preset.id}
-                className={
-                  isActive
-                    ? "border-primary bg-primary/5"
-                    : preset.isFavorite
-                    ? "border-primary/50"
-                    : ""
-                }
-              >
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      {preset.name}
-                      {isActive && (
-                        <Badge variant="default">Actif</Badge>
-                      )}
-                      {preset.isFavorite && !isActive && (
-                        <Star className="w-4 h-4 fill-primary text-primary" />
-                      )}
-                    </CardTitle>
-                    <Form method="post">
-                      <input type="hidden" name="intent" value="toggleFavorite" />
-                      <input type="hidden" name="id" value={preset.id} />
-                      <input
-                        type="hidden"
-                        name="isFavorite"
-                        value={preset.isFavorite.toString()}
-                      />
-                      <Button
-                        type="submit"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                      >
-                        <Star
-                          className={`w-4 h-4 ${
-                            preset.isFavorite
-                              ? "fill-primary text-primary"
-                              : "text-muted-foreground"
-                          }`}
-                        />
-                      </Button>
-                    </Form>
-                  </div>
-                  <CardDescription>{preset.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {/* Tags */}
-                    <div className="flex flex-wrap gap-1">
-                      {preset.tags.map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2 pt-3">
-                      {!isActive && (
-                        <Form method="post" className="flex-1">
-                          <input type="hidden" name="intent" value="setActive" />
-                          <input type="hidden" name="id" value={preset.id} />
-                          <Button className="w-full" size="sm" variant="default">
-                            <Settings className="w-4 h-4 mr-2" />
-                            Activer
-                          </Button>
-                        </Form>
-                      )}
-                      
-                      {isActive && (
-                        <Link to="/config" className="flex-1">
-                          <Button className="w-full" size="sm" variant="secondary">
-                            <Settings className="w-4 h-4 mr-2" />
-                            Configurer
-                          </Button>
-                        </Link>
-                      )}
-                      
-                      <Form method="post">
-                        <input type="hidden" name="intent" value="duplicate" />
-                        <input type="hidden" name="id" value={preset.id} />
-                        <input type="hidden" name="name" value={`Copie de ${preset.name}`} />
-                        <Button type="submit" variant="outline" size="sm">
-                          <Copy className="w-4 h-4" />
-                        </Button>
-                      </Form>
-                      
-                      <Form method="post">
-                        <input type="hidden" name="intent" value="delete" />
-                        <input type="hidden" name="id" value={preset.id} />
-                        <Button
-                          type="submit"
-                          variant="destructive"
-                          size="sm"
-                          disabled={isActive}
-                          onClick={(e) => {
-                            if (!confirm("Êtes-vous sûr de vouloir supprimer ce preset ?")) {
-                              e.preventDefault();
-                            }
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </Form>
-                    </div>
-                  </div>
-                </CardContent>
+        <>
+          {/* Favoris */}
+          {favoritePresets.length > 0 && (
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold mb-3 flex items-center gap-2 text-muted-foreground">
+                <Star className="w-5 h-5 fill-primary text-primary" />
+                Favoris
+              </h2>
+              <Card>
+                <div className="divide-y">
+                  {favoritePresets.map((preset) => (
+                    <PresetRow
+                      key={preset.id}
+                      preset={preset}
+                      isActive={preset.id === activePresetId}
+                      onToggleFavorite={() => handleToggleFavorite(preset)}
+                      onDuplicate={() => handleDuplicate(preset)}
+                      onDelete={() => handleDelete(preset)}
+                      onSetActive={() => handleSetActive(preset)}
+                    />
+                  ))}
+                </div>
               </Card>
-            );
-          })}
-        </div>
-      )}
+            </div>
+          )}
 
-      {/* Info Card */}
-      <Card className="mt-8 bg-muted/50">
-        <CardHeader>
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Save className="w-4 h-4" />
-            À propos des Presets
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm space-y-2">
-          <p>
-            <strong>Preset Actif</strong> : Le preset que vous configurez actuellement dans l'onglet Configuration.
-            Toutes les modifications que vous faites s'appliquent au preset actif.
-          </p>
-          <p>
-            <strong>Création</strong> : Un nouveau preset est créé avec les valeurs par défaut du jeu.
-            Vous pouvez ensuite l'activer et le modifier dans Configuration.
-          </p>
-          <p>
-            <strong>Duplication</strong> : Utilisez l'icône <Copy className="w-3 h-3 inline" /> pour créer
-            une copie d'un preset existant avec toutes ses configurations.
-          </p>
-          <p>
-            <strong>Favoris</strong> : Marquez vos presets préférés avec <Star className="w-3 h-3 inline" /> pour
-            les retrouver facilement.
-          </p>
-        </CardContent>
-      </Card>
+          {/* Autres presets */}
+          {otherPresets.length > 0 && (
+            <div>
+              <h2 className="text-lg font-semibold mb-3 text-muted-foreground">
+                Tous les presets
+              </h2>
+              <Card>
+                <div className="divide-y">
+                  {otherPresets.map((preset) => (
+                    <PresetRow
+                      key={preset.id}
+                      preset={preset}
+                      isActive={preset.id === activePresetId}
+                      onToggleFavorite={() => handleToggleFavorite(preset)}
+                      onDuplicate={() => handleDuplicate(preset)}
+                      onDelete={() => handleDelete(preset)}
+                      onSetActive={() => handleSetActive(preset)}
+                    />
+                  ))}
+                </div>
+              </Card>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+interface PresetRowProps {
+  preset: any;
+  isActive: boolean;
+  onToggleFavorite: () => void;
+  onDuplicate: () => void;
+  onDelete: () => void;
+  onSetActive: () => void;
+}
+
+function PresetRow({
+  preset,
+  isActive,
+  onToggleFavorite,
+  onDuplicate,
+  onDelete,
+  onSetActive,
+}: PresetRowProps) {
+  return (
+    <div className={`p-4 hover:bg-accent/50 transition-colors ${isActive ? 'bg-primary/5' : ''}`}>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="font-medium truncate">{preset.name}</h3>
+            {isActive && <Badge variant="default" className="text-xs">Actif</Badge>}
+            <div className="flex gap-1">
+              {preset.tags.map((tag: string) => (
+                <Badge key={tag} variant="outline" className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </div>
+          {preset.description && (
+            <p className="text-sm text-muted-foreground truncate">{preset.description}</p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggleFavorite}
+            className={preset.isFavorite ? "text-primary" : ""}
+          >
+            <Star className={`w-4 h-4 ${preset.isFavorite ? "fill-primary" : ""}`} />
+          </Button>
+
+          {!isActive ? (
+            <Button onClick={onSetActive} size="sm" variant="default">
+              Activer
+            </Button>
+          ) : (
+            <Link to="/config">
+              <Button size="sm" variant="secondary">
+                <Settings className="w-4 h-4 mr-2" />
+                Configurer
+              </Button>
+            </Link>
+          )}
+          
+          <Button onClick={onDuplicate} variant="ghost" size="sm">
+            <Copy className="w-4 h-4" />
+          </Button>
+          
+          <Button
+            onClick={onDelete}
+            variant="ghost"
+            size="sm"
+            disabled={isActive}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+
+          {isActive && (
+            <Link to="/config">
+              <Button variant="ghost" size="sm">
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </Link>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

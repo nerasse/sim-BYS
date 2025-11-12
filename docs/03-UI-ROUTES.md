@@ -26,8 +26,8 @@ export async function action({ request }: ActionFunctionArgs) {
 ## Routes
 
 ```
-/                          - Sélection de preset (home)
-/config                    - Layout avec sidebar
+/                          - Sélection preset (home + accès config via bouton)
+/config                    - Layout config avec sidebar (accès via home ou icône ⚙️)
 /config/symbols            - Config symboles du preset actif
 /config/combos             - Config combinaisons du preset actif
 /config/levels             - Config niveaux du preset actif
@@ -247,14 +247,14 @@ const [
 
 ### NavBar
 ```
-[Accueil] [Configuration▼] [⚡ Effets] [Ressources▼] [Simulateur] [Stats] [Presets] [Preset: "X" ▼]
+[Accueil] [Effets] [Ressources▼] | [Sélections] | [Presets] | [Simulateur] [Stats] [Preset: X ▼] [⚙️]
 ```
 
-**Menus** :
-- **Configuration▼** : Routes /config/* (dropdown)
-- **⚡ Effets** : Route /effects (lien direct, pas dans ressources)
-- **Ressources▼** : Routes /resources/* (dropdown bibliothèques)
-- **Preset actif▼** : Dropdown switcher presets
+**Structure** :
+- **Bibliothèques** : Accueil, Effets, Ressources▼ (Symboles, Combos, Bonus, Jokers, Personnages, Niveaux)
+- **Gestion** : Sélections (disponibilité objets), Presets (configs)
+- **Utilisation** : Simulateur, Stats
+- **⚙️** : Config preset actif → /config
 
 ## Styling
 

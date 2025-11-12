@@ -63,11 +63,11 @@ Notes sur l'architecture presets.
 
 ### Pour Utiliser (Game Design)
 1. **Sélectionner preset** → `/` (home)
-2. **Config symboles** → `/config/symbols`
-3. **Config combos** → `/config/combos`
-4. **Config niveaux** → `/config/levels`
-5. **Config boutique** → `/config/shop-rarities`
-6. **Config objets** → `/config/object-selections`
+2. **Accéder config** → Bouton "Configurer" ou icône ⚙️ navbar
+3. **Config symboles** → `/config/symbols`
+4. **Config combos** → `/config/combos`
+5. **Config niveaux** → `/config/levels`
+6. **Config boutique** → `/config/shop-rarities`
 7. **Simuler** → `/simulator`
 8. **Analyser** → `/stats?preset=<id>`
 
@@ -106,8 +106,9 @@ Notes sur l'architecture presets.
 1. Page d'accueil → "Créer preset"
 2. Preset créé avec configs par défaut
 3. Automatiquement activé
-4. Éditer dans /config/*
-5. Sauvegardes automatiques
+4. Accès config via bouton "Configurer" ou icône ⚙️
+5. Éditer dans /config/*
+6. Sauvegardes automatiques
 ```
 
 ### Simuler et Analyser
@@ -207,14 +208,14 @@ docker-compose up -d  # Docker
 
 | Fichier | Description |
 |---------|-------------|
-| `app/routes/_index.tsx` | Page d'accueil = sélection presets |
-| `app/lib/utils/require-active-preset.ts` | Helper protection routes |
-| `app/db/schema.ts` | Schéma DB (18 tables) |
-| `app/lib/simulation/types.ts` | Types centralisés |
-| `app/lib/simulation/engine.ts` | Orchestrateur simulation |
+| `app/routes/_index.tsx` | Home = sélection presets |
+| `app/routes/presets.tsx` | Gestion presets (liste) |
+| `app/routes/resources.object-selections.*` | Sélections objets par niveau |
 | `app/routes/config.*.tsx` | Config par preset |
 | `app/routes/simulator.tsx` | Simulateur preset actif |
-| `app/routes/stats.tsx` | Stats par preset |
+| `app/db/schema.ts` | Schéma DB (23 tables) |
+| `app/lib/simulation/` | Moteur (14 modules) |
+| `app/contexts/modal-context.tsx` | Modale globale |
 | `REFACTORING-NOTES.md` | Notes architecture |
 
 ## Constants Clés

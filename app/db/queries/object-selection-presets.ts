@@ -72,9 +72,24 @@ export async function updateObjectSelectionPreset(
 
 /**
  * Delete an object selection preset
+ * Throws an error if the preset is being used by any presets
  */
 export async function deleteObjectSelectionPreset(id: string) {
   const db = await getDb();
+
+  // Check if this object selection preset is being used
+  const { presets } = await import("../schema");
+  const usedBy = await db
+    .select({ id: presets.id, name: presets.name })
+    .from(presets)
+    .where(eq(presets.objectSelectionPresetId, id));
+
+  if (usedBy.length > 0) {
+    const presetNames = usedBy.map(p => p.name).join(", ");
+    throw new Error(
+      `Ce sous-preset ne peut pas être supprimé car il est utilisé par : ${presetNames}`
+    );
+  }
 
   await db.delete(objectSelectionPresets).where(eq(objectSelectionPresets.id, id));
 }

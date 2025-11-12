@@ -11,6 +11,7 @@ import {
 import { NavBar } from "~/components/layout/nav-bar";
 import { getActivePreset } from "~/db/queries/active-preset";
 import { getAllPresets } from "~/db/queries/presets";
+import { ModalProvider } from "~/contexts/modal-context";
 import "~/styles/global.css";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -47,12 +48,12 @@ export default function App() {
   const { activePreset, allPresets } = useLoaderData<typeof loader>();
   
   return (
-    <>
+    <ModalProvider>
       <NavBar activePreset={activePreset} allPresets={allPresets} />
       <main className="container mx-auto px-4 py-8">
         <Outlet />
       </main>
-    </>
+    </ModalProvider>
   );
 }
 

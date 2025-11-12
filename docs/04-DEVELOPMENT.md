@@ -116,16 +116,15 @@ sim-BYS/
 ```bash
 1. Page d'accueil → "Créer preset"
 2. Preset créé avec configs par défaut
-3. Automatiquement activé
-4. Redirect vers /config
-5. Éditer configs
+3. Automatiquement activé et redirect vers /config
+4. Éditer configs dans /config/*
 ```
 
 ### Modifier un Preset Existant
 ```bash
 1. Sélectionner preset (devient actif)
-2. Aller dans /config/*
-3. Éditer configs (sauvegarde auto par formulaire)
+2. Accès config via bouton "Configurer" ou icône ⚙️ navbar
+3. Éditer configs dans /config/* (sauvegarde auto par formulaire)
 4. Simuler pour tester
 ```
 

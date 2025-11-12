@@ -130,19 +130,15 @@ shopRarityConfigs   - Configs raretés globales (cache)
 ## Pages de l'Application
 
 ```
-/                          - Sélection de preset (home)
-/config                    - Layout avec sidebar
-/config/symbols            - Config symboles du preset actif
-/config/combos             - Config combinaisons du preset actif
-/config/bonuses            - Bibliothèque bonus (lecture seule)
-/config/jokers             - Bibliothèque jokers (lecture seule)
-/config/characters         - Bibliothèque personnages (lecture seule)
-/config/levels             - Config niveaux du preset actif
-/config/shop-rarities      - Config raretés du preset actif
-/config/object-selections  - Config objets par niveau (nouveau)
-/simulator                 - Interface simulation (preset actif)
-/stats                     - Statistiques par preset
-/presets                   - Gestion presets (CRUD)
+/                                  - Home (sélection preset)
+/presets                           - Gestion presets (liste)
+/resources/object-selections       - Sélections objets (liste)
+/resources/object-selections/:id   - Config objets par niveau
+/config/*                          - Config preset (symboles, combos, niveaux, shop, settings)
+/effects                           - Bibliothèque effets
+/resources/*                       - Bibliothèques (symboles, combos, bonus, jokers, personnages, niveaux)
+/simulator                         - Simulation preset actif
+/stats                             - Stats par preset
 ```
 
 ## Workflow Typique
@@ -157,11 +153,11 @@ shopRarityConfigs   - Configs raretés globales (cache)
 
 ### 2. Configuration
 ```
-1. Ajuster poids symboles (/config/symbols)
-2. Modifier multiplicateurs combos (/config/combos)
-3. Tweaker objectifs de niveaux (/config/levels)
-4. Ajuster probabilités boutique (/config/shop-rarities)
-5. Configurer objets par niveau (/config/object-selections)
+1. Accès config via bouton "Configurer" ou icône ⚙️ navbar
+2. Ajuster poids symboles (/config/symbols)
+3. Modifier multiplicateurs combos (/config/combos)
+4. Tweaker objectifs de niveaux (/config/levels)
+5. Ajuster probabilités boutique (/config/shop-rarities)
 ```
 
 ### 3. Simulation & Analyse

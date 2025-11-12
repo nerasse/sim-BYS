@@ -34,6 +34,18 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Fix pour les inputs et textareas en mode sombre */
+  input,
+  textarea,
+  select {
+    @apply bg-background text-foreground;
+  }
+  
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-muted-foreground;
+  }
 }
 
 @layer utilities {

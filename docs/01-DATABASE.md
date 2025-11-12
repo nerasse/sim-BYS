@@ -10,9 +10,26 @@
 
 L'application utilise une architecture **centrée sur les presets**. Chaque preset contient sa propre configuration complète et isolée.
 
-## Tables (18 au total)
+## Tables (23 au total)
 
-### Configuration Globale (5 tables)
+### Configuration Globale (6 tables)
+
+#### `effects` (bibliothèque centralisée)
+```typescript
+{
+  id: string (PK)
+  name: string (unique)        // Code interne (score_multiplier)
+  displayName: string          // Nom affiché
+  description: string
+  type: string                 // multiplier, additive, percentage
+  category: "passive" | "active" | "trigger"
+  target: string              // score, money, symbols, etc.
+  defaultValue: number
+  unit: string                // %, x, $
+  icon: string                // Emoji
+}
+```
+**Usage** : Bibliothèque d'effets réutilisables. Référencés dans bonus/jokers/personnages.
 
 #### `symbols` (9 symboles)
 ```typescript
@@ -92,7 +109,42 @@ L'application utilise une architecture **centrée sur les presets**. Chaque pres
 ```
 **Note** : Tous débloqués pour tests
 
-### Système de Presets (7 tables)
+### Sous-Presets d'Objets (3 tables)
+
+#### `objectSelectionPresets` - Métadonnées
+```typescript
+{
+  id: string (PK)
+  name: string
+  description: string
+  tags: string[]
+}
+```
+**Usage** : Sous-presets réutilisables pour définir disponibilité bonus/jokers par niveau
+
+#### `objectSelectionBonuses` - Bonus par niveau
+```typescript
+{
+  id: string (PK)
+  objectSelectionPresetId: string (FK → cascade)
+  bonusId: string (FK)
+  availableFrom: string      // "1-3", "2-3", etc.
+  availableUntil: string     // null = toujours après from
+}
+```
+
+#### `objectSelectionJokers` - Jokers par niveau
+```typescript
+{
+  id: string (PK)
+  objectSelectionPresetId: string (FK → cascade)
+  jokerId: string (FK)
+  availableFrom: string      // "1-1", "1-2", etc.
+  availableUntil: string     // null = toujours après from
+}
+```
+
+### Système de Presets (8 tables)
 
 #### `presets` - Métadonnées
 ```typescript
@@ -102,9 +154,10 @@ L'application utilise une architecture **centrée sur les presets**. Chaque pres
   description: string
   tags: string[]
   isFavorite: boolean
+  objectSelectionPresetId: string (FK nullable) // Lien vers sous-preset
 }
 ```
-**Usage** : Liste des presets, gestion CRUD
+**Usage** : Liste des presets, gestion CRUD, référence optionnelle vers sous-preset
 
 #### `activePreset` - Preset actif (singleton)
 ```typescript
@@ -275,21 +328,25 @@ Configs globales utilisées par le `configCache` du moteur de simulation.
 
 ```
 db/queries/
-├── presets.ts                    - CRUD presets
-├── active-preset.ts              - Get/set preset actif
-├── preset-symbol-configs.ts      - CRUD configs symboles
-├── preset-combo-configs.ts       - CRUD configs combos
-├── preset-level-configs.ts       - CRUD configs niveaux
-├── preset-shop-rarity-configs.ts - CRUD configs raretés
-├── preset-bonus-availability.ts  - CRUD disponibilité bonus
-├── preset-joker-availability.ts  - CRUD disponibilité jokers
-├── symbols.ts                    - Bibliothèque symboles
-├── combos.ts                     - Bibliothèque combos
-├── bonuses.ts                    - Bibliothèque bonus
-├── jokers.ts                     - Bibliothèque jokers
-├── characters.ts                 - Bibliothèque personnages
-├── progress.ts                   - Get/update progression
-└── simulations.ts                - CRUD runs/steps
+├── presets.ts                       - CRUD presets
+├── active-preset.ts                 - Get/set preset actif
+├── preset-symbol-configs.ts         - CRUD configs symboles
+├── preset-combo-configs.ts          - CRUD configs combos
+├── preset-level-configs.ts          - CRUD configs niveaux
+├── preset-shop-rarity-configs.ts    - CRUD configs raretés
+├── preset-bonus-availability.ts     - CRUD disponibilité bonus
+├── preset-joker-availability.ts     - CRUD disponibilité jokers
+├── object-selection-presets.ts      - CRUD sous-presets
+├── object-selection-bonuses.ts      - CRUD bonus sous-preset
+├── object-selection-jokers.ts       - CRUD jokers sous-preset
+├── effects.ts                       - Bibliothèque effets
+├── symbols.ts                       - Bibliothèque symboles
+├── combos.ts                        - Bibliothèque combos
+├── bonuses.ts                       - Bibliothèque bonus
+├── jokers.ts                        - Bibliothèque jokers
+├── characters.ts                    - Bibliothèque personnages
+├── progress.ts                      - Get/update progression
+└── simulations.ts                   - CRUD runs/steps
 ```
 
 ## Workflow de Données
@@ -328,6 +385,7 @@ db/queries/
 ## Seeds
 
 Données initiales dans `db/seed/`:
+- `effects.seed.ts` - 8 effets de base
 - `symbols.seed.ts` - 9 symboles
 - `combos.seed.ts` - 11 combinaisons
 - `bonuses.seed.ts` - 16 bonus

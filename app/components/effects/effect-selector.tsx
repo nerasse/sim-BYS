@@ -1,0 +1,147 @@
+import { useState, useEffect } from "react";
+import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Plus, Trash2 } from "lucide-react";
+
+interface Effect {
+  id: string;
+  name: string;
+  displayName: string;
+  type: string;
+  defaultValue: number;
+  unit: string | null;
+  icon: string | null;
+  target: string | null;
+}
+
+interface SelectedEffect {
+  type: string;  // Nom de l'effet
+  value: number;
+  target?: string;
+}
+
+interface EffectSelectorProps {
+  availableEffects: Effect[];
+  initialEffects: SelectedEffect[];
+  onChange: (effects: SelectedEffect[]) => void;
+}
+
+export function EffectSelector({
+  availableEffects,
+  initialEffects,
+  onChange,
+}: EffectSelectorProps) {
+  const [selectedEffects, setSelectedEffects] = useState<SelectedEffect[]>(initialEffects);
+
+  useEffect(() => {
+    onChange(selectedEffects);
+  }, [selectedEffects]);
+
+  const addEffect = () => {
+    if (availableEffects.length > 0) {
+      const firstEffect = availableEffects[0];
+      setSelectedEffects([
+        ...selectedEffects,
+        {
+          type: firstEffect.name,
+          value: firstEffect.defaultValue,
+          target: firstEffect.target || undefined,
+        },
+      ]);
+    }
+  };
+
+  const removeEffect = (index: number) => {
+    setSelectedEffects(selectedEffects.filter((_, i) => i !== index));
+  };
+
+  const updateEffect = (index: number, field: keyof SelectedEffect, value: any) => {
+    const updated = [...selectedEffects];
+    updated[index] = { ...updated[index], [field]: value };
+    setSelectedEffects(updated);
+  };
+
+  return (
+    <div className="space-y-3">
+      {selectedEffects.map((selectedEffect, index) => {
+        const effectDef = availableEffects.find((e) => e.name === selectedEffect.type);
+        
+        return (
+          <div key={index} className="flex items-end gap-2 p-3 border rounded-lg bg-muted/30">
+            <div className="flex-1 space-y-1">
+              <Label className="text-xs">Effet</Label>
+              <select
+                value={selectedEffect.type}
+                onChange={(e) => {
+                  const newEffect = availableEffects.find((ef) => ef.name === e.target.value);
+                  if (newEffect) {
+                    updateEffect(index, "type", newEffect.name);
+                    updateEffect(index, "value", newEffect.defaultValue);
+                    if (newEffect.target) {
+                      updateEffect(index, "target", newEffect.target);
+                    }
+                  }
+                }}
+                className="w-full h-9 px-3 py-2 border rounded-md"
+              >
+                {availableEffects.map((effect) => (
+                  <option key={effect.id} value={effect.name}>
+                    {effect.icon ? `${effect.icon} ` : ""}{effect.displayName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="w-32 space-y-1">
+              <Label className="text-xs">Valeur</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={selectedEffect.value}
+                onChange={(e) => updateEffect(index, "value", parseFloat(e.target.value))}
+                className="h-9"
+              />
+            </div>
+
+            {effectDef?.target && (
+              <div className="w-32 space-y-1">
+                <Label className="text-xs">Cible</Label>
+                <Input
+                  value={selectedEffect.target || effectDef.target}
+                  onChange={(e) => updateEffect(index, "target", e.target.value)}
+                  className="h-9"
+                />
+              </div>
+            )}
+
+            <div className="flex items-center text-sm text-muted-foreground w-12">
+              {effectDef?.unit || ""}
+            </div>
+
+            <Button
+              type="button"
+              size="sm"
+              variant="destructive"
+              onClick={() => removeEffect(index)}
+            >
+              <Trash2 className="w-3 h-3" />
+            </Button>
+          </div>
+        );
+      })}
+
+      <Button type="button" size="sm" variant="outline" onClick={addEffect} className="w-full">
+        <Plus className="w-3 h-3 mr-2" />
+        Ajouter un effet
+      </Button>
+
+      {selectedEffects.length === 0 && (
+        <p className="text-sm text-muted-foreground text-center py-4">
+          Aucun effet sélectionné
+        </p>
+      )}
+    </div>
+  );
+}
+

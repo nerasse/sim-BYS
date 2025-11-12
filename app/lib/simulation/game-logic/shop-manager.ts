@@ -10,22 +10,23 @@ import {
   SHOP_BASE_REROLL_COST,
   SHOP_REROLL_MULTIPLIER,
 } from "~/lib/utils/constants";
-import { configCache } from "~/lib/utils/config-cache";
+import { presetConfigCache } from "~/lib/utils/config-cache";
 
 type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary";
 
 /**
  * Generate shop inventory based on level, ascension, and chance
  */
-export function generateShopInventory(
+export async function generateShopInventory(
+  presetId: string,
   availableJokers: Joker[],
   playerLevel: number,
   ascension: number,
   chance: number,
   freeRerolls: number = 0
-): ShopInventory {
+): Promise<ShopInventory> {
   const items: ShopItem[] = [];
-  const rarityWeights = getRarityDistribution(playerLevel, ascension, chance);
+  const rarityWeights = await getRarityDistribution(presetId, playerLevel, ascension, chance);
 
   // Generate items for each shop slot
   for (let i = 0; i < SHOP_SLOTS; i++) {
@@ -55,14 +56,15 @@ export function generateShopInventory(
 /**
  * Get rarity distribution based on level, ascension, and chance
  */
-export function getRarityDistribution(
+export async function getRarityDistribution(
+  presetId: string,
   playerLevel: number,
   ascension: number,
   chance: number
-): Record<Rarity, number> {
+): Promise<Record<Rarity, number>> {
   // Get base weights for player level from config cache
   const world = Math.min(Math.ceil(playerLevel / 3), 7);
-  const baseWeights = configCache.getShopRarityWeights(world);
+  const baseWeights = await presetConfigCache.getShopRarityWeights(presetId, world);
 
   // Apply ascension shift (less common, more rare)
   const ascensionWeights = applyAscensionRarityShift(baseWeights, ascension);
@@ -140,18 +142,20 @@ function calculateJokerPrice(joker: Joker, ascension: number): number {
 /**
  * Reroll shop inventory
  */
-export function rerollShop(
+export async function rerollShop(
+  presetId: string,
   currentInventory: ShopInventory,
   availableJokers: Joker[],
   playerLevel: number,
   ascension: number,
   chance: number
-): ShopInventory {
+): Promise<ShopInventory> {
   const newRerollCount = currentInventory.rerollCount + 1;
   const newRerollCost =
     SHOP_BASE_REROLL_COST * Math.pow(SHOP_REROLL_MULTIPLIER, newRerollCount);
 
-  const newInventory = generateShopInventory(
+  const newInventory = await generateShopInventory(
+    presetId,
     availableJokers,
     playerLevel,
     ascension,
@@ -191,18 +195,20 @@ export function purchaseJoker(
 /**
  * Use free reroll if available
  */
-export function useFreeReroll(
+export async function useFreeReroll(
+  presetId: string,
   inventory: ShopInventory,
   availableJokers: Joker[],
   playerLevel: number,
   ascension: number,
   chance: number
-): ShopInventory | null {
+): Promise<ShopInventory | null> {
   if (inventory.freeRerollsRemaining <= 0) {
     return null;
   }
 
-  const newInventory = generateShopInventory(
+  const newInventory = await generateShopInventory(
+    presetId,
     availableJokers,
     playerLevel,
     ascension,

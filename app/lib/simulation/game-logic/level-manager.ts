@@ -5,16 +5,16 @@ import {
   parseLevelId,
   DEFAULT_SPINS_PER_LEVEL,
 } from "~/lib/utils/constants";
-import { configCache } from "~/lib/utils/config-cache";
+import { presetConfigCache } from "~/lib/utils/config-cache";
 
 /**
  * Get level information
  */
-export function getLevelInfo(levelId: LevelId, ascension: number): LevelInfo {
+export async function getLevelInfo(presetId: string, levelId: LevelId, ascension: number): Promise<LevelInfo> {
   const { world, stage } = parseLevelId(levelId);
-  const objective = configCache.getLevelObjective(levelId, ascension);
-  const reward = configCache.getLevelReward(levelId);
-  const boss = configCache.isBossLevel(levelId);
+  const objective = await presetConfigCache.getLevelObjective(presetId, levelId, ascension);
+  const reward = await presetConfigCache.getLevelReward(presetId, levelId);
+  const boss = await presetConfigCache.isBossLevel(presetId, levelId);
 
   return {
     id: levelId,
@@ -44,12 +44,13 @@ export function isLevelBoss(levelId: LevelId): boolean {
 /**
  * Calculate level rewards (dollars, XP, bonus choice)
  */
-export function calculateLevelRewards(
+export async function calculateLevelRewards(
+  presetId: string,
   levelId: LevelId,
   currentDollars: number,
   ascension: number
-): LevelRewards {
-  const levelInfo = getLevelInfo(levelId, ascension);
+): Promise<LevelRewards> {
+  const levelInfo = await getLevelInfo(presetId, levelId, ascension);
   const baseDollars = levelInfo.dollarsReward;
 
   // Calculate interest
@@ -92,28 +93,30 @@ export function hasReachedEndLevel(
 /**
  * Check if level objective is met
  */
-export function isLevelObjectiveMet(
+export async function isLevelObjectiveMet(
+  presetId: string,
   tokens: number,
   levelId: LevelId,
   ascension: number
-): boolean {
-  const objective = configCache.getLevelObjective(levelId, ascension);
+): Promise<boolean> {
+  const objective = await presetConfigCache.getLevelObjective(presetId, levelId, ascension);
   return tokens >= objective;
 }
 
 /**
  * Consume tokens for boss level
  */
-export function consumeBossTokens(
+export async function consumeBossTokens(
+  presetId: string,
   tokens: number,
   levelId: LevelId,
   ascension: number
-): number {
+): Promise<number> {
   if (!isBossLevel(levelId)) {
     return tokens;
   }
 
-  const objective = configCache.getLevelObjective(levelId, ascension);
+  const objective = await presetConfigCache.getLevelObjective(presetId, levelId, ascension);
   return Math.max(0, tokens - objective);
 }
 

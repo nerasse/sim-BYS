@@ -2,7 +2,7 @@
 
 ## Framework
 
-**Remix 2** avec file-based routing.
+**Remix 2** avec file-based routing.  
 
 ## Structure Remix
 
@@ -30,12 +30,17 @@ export async function action({ request }: ActionFunctionArgs) {
 /config                    - Layout avec sidebar
 /config/symbols            - Config symboles du preset actif
 /config/combos             - Config combinaisons du preset actif
-/config/bonuses            - Bibliothèque bonus (lecture seule)
-/config/jokers             - Bibliothèque jokers (lecture seule)
-/config/characters         - Bibliothèque personnages (lecture seule)
 /config/levels             - Config niveaux du preset actif
 /config/shop-rarities      - Config raretés boutique du preset actif
-/config/object-selections  - Config objets par niveau (nouveau)
+/config/preset-settings    - Paramètres preset + lien sous-preset
+/effects                   - ⚡ Bibliothèque effets (liste, CRUD)
+/resources/symbols         - Bibliothèque symboles (CRUD)
+/resources/combinations    - Bibliothèque combos (CRUD)
+/resources/bonuses         - Bibliothèque bonus (CRUD avec dropdown effets)
+/resources/jokers          - Bibliothèque jokers (CRUD avec dropdown effets)
+/resources/characters      - Bibliothèque personnages (CRUD avec dropdown effets)
+/resources/levels          - Bibliothèque niveaux (CRUD)
+/resources/object-selections - Sous-presets objets (CRUD)
 /simulator                 - Simulation avec preset actif
 /stats                     - Statistiques par preset
 /stats?preset=<id>         - Stats d'un preset spécifique
@@ -70,15 +75,12 @@ export async function action({ request }: ActionFunctionArgs) {
 **Loader** : `getAllPresets()`, `getActivePreset()`  
 **Protection** : Redirect si pas de preset actif
 
-**Sidebar** : 8 sections
+**Sidebar** : 5 sections
 - Symboles
 - Combinaisons
-- Bonus
-- Jokers
-- Personnages
 - Niveaux
 - Raretés Boutique
-- **Objets par Niveau** ← Nouveau
+- Paramètres du Preset (lien sous-preset)
 
 **Top** : PresetSelector component (switch preset)
 
@@ -107,22 +109,31 @@ export async function action({ request }: ActionFunctionArgs) {
 
 ---
 
-### Config Objets par Niveau (`config.object-selections.tsx`) **NOUVEAU**
+### Config Preset Settings (`config.preset-settings.tsx`) **NOUVEAU**
 
-**Loader** : `requireActivePreset()`, `getPresetBonusAvailabilities()`, `getPresetJokerAvailabilities()`
+**Loader** : `requireActivePreset()`, `getAllObjectSelectionPresets()`
 
 **Actions** :
-- `addBonus` - Ajouter disponibilité bonus
-- `removeBonus` - Retirer disponibilité
-- `addJoker` - Ajouter disponibilité joker
-- `removeJoker` - Retirer disponibilité
+- `updatePreset` - Lier un sous-preset d'objets au preset actif
 
 **Display** :
-- **Bonus configurés** : Liste avec plage (de X-3 à Y-3)
-- **Ajouter bonus** : Dropdown bonus + from/until
-- **Jokers configurés** : Liste avec plage
-- **Ajouter joker** : Dropdown joker + from/until
-- **Info** : Par défaut, tous disponibles si non configuré
+- **Sélecteur de sous-preset** : Dropdown pour choisir un objectSelectionPreset
+- **Info** : Permet de réutiliser des configs d'objets entre presets
+
+---
+
+### Effets (`effects.tsx`) **ÉDITABLE** ⚡
+
+**Loader** : `getAllEffects()`  
+**Actions** : `create`, `update`, `delete`
+
+**Display** :
+- **Table/liste** (non cards) pour performance
+- Colonnes : Nom, Code, Type, Catégorie, Cible, Valeur défaut
+- Édition inline dans la table
+- Formulaire création compact
+
+**Usage** : Fondation pour bonus, jokers, personnages
 
 ---
 
@@ -134,7 +145,7 @@ export async function action({ request }: ActionFunctionArgs) {
 **Display** :
 - Groupés par monde (1-7)
 - **Formulaire par niveau** : Objectif, Récompense $
-- Badge "Boss" si X-3
+  - Badge "Boss" si X-3
 
 ---
 
@@ -146,7 +157,7 @@ export async function action({ request }: ActionFunctionArgs) {
 **Display** :
 - 7 cards (1 par monde)
 - **Formulaire** : 5 poids (common → legendary)
-- Progress bars visuelles
+  - Progress bars visuelles
 
 ---
 
@@ -236,12 +247,14 @@ const [
 
 ### NavBar
 ```
-[Logo] [Accueil] [Configuration] [Simulateur] [Statistiques] [Presets]
-                                                              [Preset: "X" ▼]
+[Accueil] [Configuration▼] [⚡ Effets] [Ressources▼] [Simulateur] [Stats] [Presets] [Preset: "X" ▼]
 ```
 
-**Preset actif** : Badge cliquable vers home  
-**Pas de preset** : Badge rouge "Aucun preset actif"
+**Menus** :
+- **Configuration▼** : Routes /config/* (dropdown)
+- **⚡ Effets** : Route /effects (lien direct, pas dans ressources)
+- **Ressources▼** : Routes /resources/* (dropdown bibliothèques)
+- **Preset actif▼** : Dropdown switcher presets
 
 ## Styling
 

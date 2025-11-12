@@ -53,6 +53,12 @@ Remix utilise le routing basé sur les fichiers. Chaque fichier dans `app/routes
 - **Configuration isolée** : Chaque preset a ses propres configs
 - **Favoris et tags** : Organisation facilitée
 
+### ⚡ Système d'Effets (Fondation)
+- **Bibliothèque centralisée** : Effets réutilisables (multiplicateurs, additifs, triggers)
+- **Référencés par** : Bonus, jokers, personnages
+- **UI optimisée** : Liste/table pour édition rapide
+- **Dropdown de sélection** : Dans tous les objets (plus de JSON manuel)
+
 ### ⚙️ Configuration par Preset
 - **Symboles** : Poids, valeurs, multiplicateurs
 - **Combinaisons** : Multiplicateurs, actif/inactif
@@ -83,10 +89,11 @@ Remix utilise le routing basé sur les fichiers. Chaque fichier dans `app/routes
 
 ## Structure de Données
 
-### Tables Principales (18 au total)
+### Tables Principales (23 au total)
 
 #### Configuration Globale
 ```
+effects             - Bibliothèque centralisée d'effets réutilisables
 symbols             - 9 symboles (basiques, premium, bonus)
 combinations        - 11 types de combos
 bonuses             - 16 bonus (4 départ + 12 partie)

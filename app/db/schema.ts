@@ -1,6 +1,39 @@
 import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
+// Effets (bibliothèque centralisée)
+export const effects = sqliteTable("effects", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  displayName: text("display_name").notNull(),
+  description: text("description").notNull(),
+  type: text("type").notNull(), // "multiplier", "additive", "percentage", etc.
+  category: text("category", { enum: ["passive", "active", "trigger"] }).notNull(),
+  target: text("target"), // "score", "money", "symbols", etc.
+  defaultValue: real("default_value").notNull().default(1),
+  unit: text("unit"), // "%", "x", "$", etc.
+  icon: text("icon"),
+  // Champs spécifiques selon le type
+  config: text("config", { mode: "json" }), // { condition?: string, baseValue?: number, increment?: number, maxValue?: number }
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export const effectTargets = sqliteTable("effect_targets", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(), // "score", "money", "symbols"
+  displayName: text("display_name").notNull(),
+  description: text("description").notNull(),
+  icon: text("icon"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
 // Symboles (9 symboles de base)
 export const symbols = sqliteTable("symbols", {
   id: text("id").primaryKey(),
@@ -127,6 +160,58 @@ export const playerProgress = sqliteTable("player_progress", {
     .default(sql`(unixepoch())`),
 });
 
+// Object Selection Presets (sous-presets réutilisables)
+export const objectSelectionPresets = sqliteTable("object_selection_presets", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  tags: text("tags", { mode: "json" }).$type<string[]>().notNull().default(sql`'[]'`),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Disponibilité des bonus dans un object selection preset
+export const objectSelectionBonuses = sqliteTable("object_selection_bonuses", {
+  id: text("id").primaryKey(),
+  objectSelectionPresetId: text("object_selection_preset_id")
+    .references(() => objectSelectionPresets.id, { onDelete: "cascade" })
+    .notNull(),
+  bonusId: text("bonus_id")
+    .references(() => bonuses.id)
+    .notNull(),
+  availableFrom: text("available_from").notNull(), // "1-1", "1-3", etc.
+  availableUntil: text("available_until"), // null = toujours disponible après availableFrom
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+// Disponibilité des jokers dans un object selection preset
+export const objectSelectionJokers = sqliteTable("object_selection_jokers", {
+  id: text("id").primaryKey(),
+  objectSelectionPresetId: text("object_selection_preset_id")
+    .references(() => objectSelectionPresets.id, { onDelete: "cascade" })
+    .notNull(),
+  jokerId: text("joker_id")
+    .references(() => jokers.id)
+    .notNull(),
+  availableFrom: text("available_from").notNull(), // "1-1", "1-2", etc.
+  availableUntil: text("available_until"), // null = toujours disponible après availableFrom
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
 // Presets (métadonnées uniquement)
 export const presets = sqliteTable("presets", {
   id: text("id").primaryKey(),
@@ -136,6 +221,8 @@ export const presets = sqliteTable("presets", {
   isFavorite: integer("is_favorite", { mode: "boolean" })
     .notNull()
     .default(false),
+  objectSelectionPresetId: text("object_selection_preset_id")
+    .references(() => objectSelectionPresets.id),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
@@ -385,6 +472,12 @@ export const globalStats = sqliteTable("global_stats", {
 });
 
 // Type exports
+export type Effect = typeof effects.$inferSelect;
+export type NewEffect = typeof effects.$inferInsert;
+
+export type EffectTarget = typeof effectTargets.$inferSelect;
+export type NewEffectTarget = typeof effectTargets.$inferInsert;
+
 export type Symbol = typeof symbols.$inferSelect;
 export type NewSymbol = typeof symbols.$inferInsert;
 
@@ -402,6 +495,15 @@ export type NewCharacter = typeof characters.$inferInsert;
 
 export type PlayerProgress = typeof playerProgress.$inferSelect;
 export type NewPlayerProgress = typeof playerProgress.$inferInsert;
+
+export type ObjectSelectionPreset = typeof objectSelectionPresets.$inferSelect;
+export type NewObjectSelectionPreset = typeof objectSelectionPresets.$inferInsert;
+
+export type ObjectSelectionBonus = typeof objectSelectionBonuses.$inferSelect;
+export type NewObjectSelectionBonus = typeof objectSelectionBonuses.$inferInsert;
+
+export type ObjectSelectionJoker = typeof objectSelectionJokers.$inferSelect;
+export type NewObjectSelectionJoker = typeof objectSelectionJokers.$inferInsert;
 
 export type Preset = typeof presets.$inferSelect;
 export type NewPreset = typeof presets.$inferInsert;

@@ -8,7 +8,11 @@ import { getPresetSymbolConfigs } from "~/db/queries/preset-symbol-configs";
 import { getPresetComboConfigs } from "~/db/queries/preset-combo-configs";
 import { getPresetLevelConfigs } from "~/db/queries/preset-level-configs";
 import { getPresetShopRarityConfigs } from "~/db/queries/preset-shop-rarity-configs";
-import { getStartingBonuses, getGameBonuses } from "~/db/queries/bonuses";
+import { getPresetBonusAvailabilities } from "~/db/queries/preset-bonus-availability";
+import { getPresetJokerAvailabilities } from "~/db/queries/preset-joker-availability";
+import { getObjectSelectionBonuses } from "~/db/queries/object-selection-bonuses";
+import { getObjectSelectionJokers } from "~/db/queries/object-selection-jokers";
+import { getStartingBonuses, getGameBonuses, getAllBonuses } from "~/db/queries/bonuses";
 import { getAllJokers } from "~/db/queries/jokers";
 import { getUnlockedCharacters } from "~/db/queries/characters";
 import { getPlayerProgress } from "~/db/queries/progress";
@@ -40,6 +44,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     shopRarityConfigs,
     startingBonuses,
     gameBonuses,
+    allBonuses,
     jokers,
     characters,
     progress
@@ -49,12 +54,55 @@ export async function loader({ request }: LoaderFunctionArgs) {
     getPresetComboConfigs(activePresetId),
     getPresetLevelConfigs(activePresetId),
     getPresetShopRarityConfigs(activePresetId),
-    getStartingBonuses(),
-    getGameBonuses(),
-    getAllJokers(),
-    getUnlockedCharacters(),
-    getPlayerProgress(),
-  ]);
+      getStartingBonuses(),
+      getGameBonuses(),
+    getAllBonuses(),
+      getAllJokers(),
+      getUnlockedCharacters(),
+      getPlayerProgress(),
+    ]);
+
+  // Load object availabilities
+  let bonusAvailabilities: Array<{ bonusId: string; availableFrom: string; availableUntil: string | null }> = [];
+  let jokerAvailabilities: Array<{ jokerId: string; availableFrom: string; availableUntil: string | null }> = [];
+
+  if (preset?.objectSelectionPresetId) {
+    // Load from object selection preset
+    const [bonusConfigs, jokerConfigs] = await Promise.all([
+      getObjectSelectionBonuses(preset.objectSelectionPresetId),
+      getObjectSelectionJokers(preset.objectSelectionPresetId),
+    ]);
+
+    bonusAvailabilities = bonusConfigs.map((config) => ({
+      bonusId: config.availability!.bonusId,
+      availableFrom: config.availability!.availableFrom,
+      availableUntil: config.availability!.availableUntil,
+    }));
+
+    jokerAvailabilities = jokerConfigs.map((config) => ({
+      jokerId: config.availability!.jokerId,
+      availableFrom: config.availability!.availableFrom,
+      availableUntil: config.availability!.availableUntil,
+    }));
+  } else {
+    // Fallback: Load from preset-specific tables
+    const [bonusConfigs, jokerConfigs] = await Promise.all([
+      getPresetBonusAvailabilities(activePresetId),
+      getPresetJokerAvailabilities(activePresetId),
+    ]);
+
+    bonusAvailabilities = bonusConfigs.map((config) => ({
+      bonusId: config.availability!.bonusId,
+      availableFrom: config.availability!.availableFrom,
+      availableUntil: config.availability!.availableUntil,
+    }));
+
+    jokerAvailabilities = jokerConfigs.map((config) => ({
+      jokerId: config.availability!.jokerId,
+      availableFrom: config.availability!.availableFrom,
+      availableUntil: config.availability!.availableUntil,
+    }));
+  }
 
   return json({
     preset,
@@ -64,9 +112,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
     shopRarityConfigs,
     startingBonuses,
     gameBonuses,
+    allBonuses,
     jokers,
     characters,
     progress,
+    bonusAvailabilities,
+    jokerAvailabilities,
   });
 }
 
@@ -81,8 +132,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const config: SimulationConfig = JSON.parse(configJson);
   
-  // Run simulation
-  const result = runAutoSimulation(config);
+  // Run simulation (now async)
+  const result = await runAutoSimulation(config);
   
   // TODO: Save simulation run with presetId
   
@@ -90,8 +141,15 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function Simulator() {
-  const { preset, symbolConfigs, comboConfigs, startingBonuses, characters } =
-    useLoaderData<typeof loader>();
+  const { 
+    preset, 
+    symbolConfigs, 
+    comboConfigs, 
+    startingBonuses, 
+    characters,
+    bonusAvailabilities,
+    jokerAvailabilities 
+  } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
 
   const [selectedCharacter, setSelectedCharacter] = useState(characters[0]?.id || "");
@@ -112,25 +170,20 @@ export default function Simulator() {
     }
 
     // Préparer les configs depuis le preset
-    const symbolWeights: Record<string, number> = {};
-    symbolConfigs.forEach(({ config, symbol }) => {
-      if (symbol) {
-        symbolWeights[symbol.id] = config.weight;
-      }
-    });
-
-    const comboMultipliers: Record<string, number> = {};
-    comboConfigs.forEach(({ config, combo }) => {
-      if (combo && config.isActive) {
-        comboMultipliers[combo.id] = config.multiplier;
-      }
-    });
+    const symbolsConfig = symbolConfigs.map(({ symbol }) => symbol!).filter(Boolean);
+    const combosConfig = comboConfigs
+      .filter(({ config, combo }) => combo && config.isActive)
+      .map(({ combo }) => combo!);
 
     const config: SimulationConfig = {
+      presetId: preset!.id,
+      objectSelectionPresetId: preset?.objectSelectionPresetId || undefined,
       character,
       startingBonus,
-      symbolWeights,
-      comboMultipliers,
+      symbolsConfig,
+      combosConfig,
+      availableBonuses: bonusAvailabilities,
+      availableJokers: jokerAvailabilities,
       ascension,
       startLevel,
       endLevel,
@@ -230,25 +283,25 @@ export default function Simulator() {
               </div>
 
               {/* Start Level */}
-              <div>
+                <div>
                 <label className="text-sm font-medium mb-2 block">Niveau de départ</label>
-                <Input
-                  type="text"
-                  value={startLevel}
-                  onChange={(e) => setStartLevel(e.target.value)}
-                  placeholder="1-1"
-                />
-              </div>
+                  <Input
+                    type="text"
+                    value={startLevel}
+                    onChange={(e) => setStartLevel(e.target.value)}
+                    placeholder="1-1"
+                  />
+                </div>
 
               {/* End Level */}
-              <div>
+                <div>
                 <label className="text-sm font-medium mb-2 block">Niveau de fin</label>
-                <Input
-                  type="text"
-                  value={endLevel}
-                  onChange={(e) => setEndLevel(e.target.value)}
-                  placeholder="7-3"
-                />
+                  <Input
+                    type="text"
+                    value={endLevel}
+                    onChange={(e) => setEndLevel(e.target.value)}
+                    placeholder="7-3"
+                  />
               </div>
 
               {/* Starting Dollars */}
@@ -290,8 +343,8 @@ export default function Simulator() {
 
         {/* Results Panel */}
         <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
+              <Card>
+                <CardHeader>
               <CardTitle>Résultats</CardTitle>
               <CardDescription>
                 {isRunning
@@ -351,16 +404,16 @@ export default function Simulator() {
                             Taux de succès: {result.stats.winRate?.toFixed(2)}%
                           </div>
                         </div>
-                      </div>
+                    </div>
                     </>
-                  )}
-                </div>
+              )}
+            </div>
               ) : (
                 <div className="text-center text-muted-foreground py-12">
                   <Gamepad2 className="w-16 h-16 mx-auto mb-4 opacity-50" />
                   <p>Configurez les paramètres et lancez une simulation</p>
                 </div>
-              )}
+          )}
             </CardContent>
           </Card>
         </div>

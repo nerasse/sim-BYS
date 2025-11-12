@@ -1,0 +1,113 @@
+import { effects } from "../schema";
+import { getDb } from "../client";
+import { nanoid } from "nanoid";
+
+export async function seedEffects() {
+  const db = await getDb();
+
+  const defaultEffects = [
+    {
+      id: nanoid(),
+      name: "score_multiplier",
+      displayName: "Multiplicateur de Score",
+      description: "Multiplie le score obtenu",
+      type: "multiplier",
+      category: "passive" as const,
+      target: "score",
+      defaultValue: 1.5,
+      unit: "x",
+      icon: "⚡",
+    },
+    {
+      id: nanoid(),
+      name: "money_bonus",
+      displayName: "Bonus d'Argent",
+      description: "Ajoute de l'argent supplémentaire",
+      type: "additive",
+      category: "passive" as const,
+      target: "money",
+      defaultValue: 10,
+      unit: "$",
+      icon: "💰",
+    },
+    {
+      id: nanoid(),
+      name: "symbol_value_increase",
+      displayName: "Augmentation Valeur Symbole",
+      description: "Augmente la valeur des symboles",
+      type: "percentage",
+      category: "passive" as const,
+      target: "symbols",
+      defaultValue: 0.2,
+      unit: "%",
+      icon: "📈",
+    },
+    {
+      id: nanoid(),
+      name: "reroll_discount",
+      displayName: "Réduction Reroll",
+      description: "Réduit le coût du reroll",
+      type: "percentage",
+      category: "passive" as const,
+      target: "shop",
+      defaultValue: 0.5,
+      unit: "%",
+      icon: "🔄",
+    },
+    {
+      id: nanoid(),
+      name: "combo_multiplier",
+      displayName: "Multiplicateur de Combo",
+      description: "Augmente le multiplicateur des combos",
+      type: "multiplier",
+      category: "passive" as const,
+      target: "combo",
+      defaultValue: 1.3,
+      unit: "x",
+      icon: "🎯",
+    },
+    {
+      id: nanoid(),
+      name: "extra_spin",
+      displayName: "Spin Supplémentaire",
+      description: "Donne un spin gratuit",
+      type: "action",
+      category: "active" as const,
+      target: "spin",
+      defaultValue: 1,
+      unit: "",
+      icon: "🎰",
+    },
+    {
+      id: nanoid(),
+      name: "on_boss_defeated",
+      displayName: "À la Défaite du Boss",
+      description: "Se déclenche quand un boss est vaincu",
+      type: "trigger",
+      category: "trigger" as const,
+      target: "boss",
+      defaultValue: 1,
+      unit: "",
+      icon: "👑",
+    },
+    {
+      id: nanoid(),
+      name: "level_reward_boost",
+      displayName: "Boost Récompense de Niveau",
+      description: "Augmente les récompenses de niveau",
+      type: "percentage",
+      category: "passive" as const,
+      target: "reward",
+      defaultValue: 0.25,
+      unit: "%",
+      icon: "🎁",
+    },
+  ];
+
+  for (const effect of defaultEffects) {
+    await db.insert(effects).values(effect);
+  }
+
+  console.log(`✅ ${defaultEffects.length} effets créés`);
+}
+

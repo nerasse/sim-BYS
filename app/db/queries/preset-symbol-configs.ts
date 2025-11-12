@@ -70,8 +70,6 @@ export async function upsertPresetSymbolConfig(
         presetId,
         symbolId,
         ...data,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       })
       .returning();
   }

@@ -22,6 +22,7 @@ export async function getDb() {
   if (!_db) {
     await ensureDbDir();
     const sqlite = new Database(dbPath);
+    sqlite.pragma("foreign_keys = ON");
     sqlite.pragma("journal_mode = WAL");
     _db = drizzle(sqlite, { schema });
   }

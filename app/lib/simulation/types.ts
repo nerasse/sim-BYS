@@ -85,6 +85,10 @@ export interface SpinResult {
 // ========== SIMULATION CONFIG ==========
 
 export interface SimulationConfig {
+  // Preset reference (CRITICAL)
+  presetId: string;
+  objectSelectionPresetId?: string;
+
   // Character & starting items
   character: Character;
   startingBonus: Bonus;
@@ -92,6 +96,18 @@ export interface SimulationConfig {
   // Game configuration
   symbolsConfig: Symbol[];
   combosConfig: Combination[];
+
+  // Object availability
+  availableBonuses: Array<{
+    bonusId: string;
+    availableFrom: string;
+    availableUntil?: string | null;
+  }>;
+  availableJokers: Array<{
+    jokerId: string;
+    availableFrom: string;
+    availableUntil?: string | null;
+  }>;
 
   // Ascension & difficulty
   ascension: number;

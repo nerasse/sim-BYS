@@ -1,6 +1,7 @@
 import { getDb } from "../client";
 import { bonuses } from "../schema";
 import { eq, and } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
 export async function getAllBonuses() {
   const db = await getDb();
@@ -38,5 +39,78 @@ export async function getGameBonusesByRarity(
     .select()
     .from(bonuses)
     .where(and(eq(bonuses.type, "game"), eq(bonuses.rarity, rarity)));
+}
+
+export async function createBonus(data: {
+  name: string;
+  description: string;
+  type: "starting" | "game";
+  rarity: "common" | "uncommon" | "rare" | "epic" | "legendary";
+  effects: Array<{ type: string; value: number; target?: string }>;
+  baseValue: number;
+  scalingPerLevel: number;
+  maxLevel: number;
+  obtainCondition?: string;
+  isDestructible: boolean;
+}) {
+  const db = await getDb();
+  const [bonus] = await db
+    .insert(bonuses)
+    .values({
+      id: nanoid(),
+      name: data.name,
+      description: data.description,
+      type: data.type,
+      rarity: data.rarity,
+      effects: data.effects,
+      baseValue: data.baseValue,
+      scalingPerLevel: data.scalingPerLevel,
+      maxLevel: data.maxLevel,
+      obtainCondition: data.obtainCondition || null,
+      isDestructible: data.isDestructible,
+    })
+    .returning();
+  return bonus;
+}
+
+export async function updateBonus(
+  id: string,
+  data: {
+    name?: string;
+    description?: string;
+    type?: "starting" | "game";
+    rarity?: "common" | "uncommon" | "rare" | "epic" | "legendary";
+    effects?: Array<{ type: string; value: number; target?: string }>;
+    baseValue?: number;
+    scalingPerLevel?: number;
+    maxLevel?: number;
+    obtainCondition?: string;
+    isDestructible?: boolean;
+  }
+) {
+  const db = await getDb();
+  const updateData: any = {};
+  if (data.name) updateData.name = data.name;
+  if (data.description) updateData.description = data.description;
+  if (data.type) updateData.type = data.type;
+  if (data.rarity) updateData.rarity = data.rarity;
+  if (data.effects) updateData.effects = data.effects;
+  if (data.baseValue !== undefined) updateData.baseValue = data.baseValue;
+  if (data.scalingPerLevel !== undefined) updateData.scalingPerLevel = data.scalingPerLevel;
+  if (data.maxLevel !== undefined) updateData.maxLevel = data.maxLevel;
+  if (data.obtainCondition !== undefined) updateData.obtainCondition = data.obtainCondition || null;
+  if (data.isDestructible !== undefined) updateData.isDestructible = data.isDestructible;
+  
+  const [bonus] = await db
+    .update(bonuses)
+    .set(updateData)
+    .where(eq(bonuses.id, id))
+    .returning();
+  return bonus;
+}
+
+export async function deleteBonus(id: string) {
+  const db = await getDb();
+  await db.delete(bonuses).where(eq(bonuses.id, id));
 }
 

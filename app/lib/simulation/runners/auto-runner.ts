@@ -5,16 +5,16 @@ import { runSimulation } from "../engine";
  * Run simulation in automatic mode
  * All decisions are made automatically by simple AI
  */
-export function runAutoSimulation(
+export async function runAutoSimulation(
   config: SimulationConfig
-): SimulationResult {
+): Promise<SimulationResult> {
   // Ensure mode is set to auto
   const autoConfig: SimulationConfig = {
     ...config,
     mode: "auto",
   };
 
-  return runSimulation(autoConfig);
+  return await runSimulation(autoConfig);
 }
 
 /**
@@ -28,7 +28,7 @@ export async function runBatchSimulation(
   const results: SimulationResult[] = [];
 
   for (let i = 0; i < iterations; i++) {
-    const result = runAutoSimulation(config);
+    const result = await runAutoSimulation(config);
     results.push(result);
 
     if (onProgress) {

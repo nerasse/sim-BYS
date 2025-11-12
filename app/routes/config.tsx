@@ -1,7 +1,7 @@
 import { json, type LoaderFunctionArgs } from "@remix-run/node";
 import { Outlet, Link, useLocation, useLoaderData } from "@remix-run/react";
 import { cn } from "~/lib/utils";
-import { Shapes, Target, Gift, Sparkles, User, BarChart3, Store, Calendar } from "lucide-react";
+import { Shapes, Target, Gift, Sparkles, User, BarChart3, Store, Package } from "lucide-react";
 import { getAllPresets } from "~/db/queries/presets";
 import { getActivePreset } from "~/db/queries/active-preset";
 import { PresetSelector } from "~/components/presets/preset-selector";
@@ -9,12 +9,9 @@ import { PresetSelector } from "~/components/presets/preset-selector";
 const configSections = [
   { href: "/config/symbols", label: "Symboles", Icon: Shapes },
   { href: "/config/combos", label: "Combinaisons", Icon: Target },
-  { href: "/config/bonuses", label: "Bonus", Icon: Gift },
-  { href: "/config/jokers", label: "Jokers", Icon: Sparkles },
-  { href: "/config/characters", label: "Personnages", Icon: User },
   { href: "/config/levels", label: "Niveaux", Icon: BarChart3 },
   { href: "/config/shop-rarities", label: "Raretés Boutique", Icon: Store },
-  { href: "/config/object-selections", label: "Objets par Niveau", Icon: Calendar },
+  { href: "/config/preset-settings", label: "Paramètres du Preset", Icon: Package },
 ];
 
 export async function loader({ request }: LoaderFunctionArgs) {

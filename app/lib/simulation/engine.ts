@@ -135,7 +135,7 @@ export function executeSpin(
 /**
  * Run a complete simulation
  */
-export function runSimulation(config: SimulationConfig): SimulationResult {
+export async function runSimulation(config: SimulationConfig): Promise<SimulationResult> {
   const startTime = Date.now();
   const history: SimulationStep[] = [];
   const stats: SimulationStats = {
@@ -156,7 +156,7 @@ export function runSimulation(config: SimulationConfig): SimulationResult {
 
   // Main game loop
   while (!hasReachedEndLevel(state.currentLevel, config.endLevel)) {
-    const levelInfo = getLevelInfo(state.currentLevel, state.ascension);
+    const levelInfo = await getLevelInfo(config.presetId, state.currentLevel, state.ascension);
     const spinsForLevel =
       DEFAULT_SPINS_PER_LEVEL + state.extraSpinsThisLevel;
     state.extraSpinsThisLevel = 0;
@@ -218,7 +218,7 @@ export function runSimulation(config: SimulationConfig): SimulationResult {
     }
 
     // Check level objective
-    if (!isLevelObjectiveMet(state.tokens, state.currentLevel, state.ascension)) {
+    if (!(await isLevelObjectiveMet(config.presetId, state.tokens, state.currentLevel, state.ascension))) {
       // Level failed
       break;
     }
@@ -228,7 +228,8 @@ export function runSimulation(config: SimulationConfig): SimulationResult {
 
     // Consume tokens if boss level
     if (levelInfo.isBoss) {
-      state.tokens = consumeBossTokens(
+      state.tokens = await consumeBossTokens(
+        config.presetId,
         state.tokens,
         state.currentLevel,
         state.ascension
@@ -236,7 +237,8 @@ export function runSimulation(config: SimulationConfig): SimulationResult {
     }
 
     // Level rewards
-    const levelRewards = calculateLevelRewards(
+    const levelRewards = await calculateLevelRewards(
+      config.presetId,
       state.currentLevel,
       state.dollars,
       state.ascension
@@ -285,7 +287,7 @@ export function runSimulation(config: SimulationConfig): SimulationResult {
   const success = hasReachedEndLevel(state.currentLevel, config.endLevel);
   const completedFully =
     success &&
-    isLevelObjectiveMet(state.tokens, config.endLevel, state.ascension);
+    (await isLevelObjectiveMet(config.presetId, state.tokens, config.endLevel, state.ascension));
 
   return {
     success,

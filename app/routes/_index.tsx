@@ -158,8 +158,8 @@ export default function Index() {
               <Link to={`/stats?preset=${activePreset.id}`}>
                 <Button variant="outline">
                   <BarChart3 className="w-4 h-4" />
-                </Button>
-              </Link>
+              </Button>
+            </Link>
             </div>
           </CardContent>
         </Card>
@@ -167,16 +167,16 @@ export default function Index() {
 
       {/* Créer un nouveau preset */}
       <Card className="mb-8">
-        <CardHeader>
+          <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Plus className="w-5 h-5" />
             Créer un nouveau preset
           </CardTitle>
-          <CardDescription>
+            <CardDescription>
             Un preset contient toute la configuration de votre simulation
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
           <Form method="post" className="flex gap-2">
             <input type="hidden" name="intent" value="create" />
             <Input

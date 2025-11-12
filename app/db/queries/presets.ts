@@ -51,8 +51,7 @@ export async function createPreset(data: {
       description: data.description || null,
       tags: data.tags || [],
       isFavorite: data.isFavorite || false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      objectSelectionPresetId: null,
     })
     .returning();
 

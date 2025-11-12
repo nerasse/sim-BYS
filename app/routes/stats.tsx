@@ -231,95 +231,95 @@ export default function Stats() {
 
         {/* Player Progress */}
         {!selectedPresetId && (
-          <Card>
-            <CardHeader>
+        <Card>
+          <CardHeader>
               <CardTitle>Progression du Joueur</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-3">
-                <div>
-                  <div className="text-sm text-muted-foreground">Ascension Max Débloquée</div>
-                  <div className="text-2xl font-bold">{progress?.maxAscensionUnlocked || 0}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted-foreground">Runs Complétées</div>
-                  <div className="text-2xl font-bold text-green-500">
-                    {progress?.totalRunsCompleted || 0}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted-foreground">Runs Tentées</div>
-                  <div className="text-2xl font-bold">{progress?.totalRunsAttempted || 0}</div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div>
+                <div className="text-sm text-muted-foreground">Ascension Max Débloquée</div>
+                <div className="text-2xl font-bold">{progress?.maxAscensionUnlocked || 0}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Runs Complétées</div>
+                <div className="text-2xl font-bold text-green-500">
+                  {progress?.totalRunsCompleted || 0}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <div className="text-sm text-muted-foreground">Runs Tentées</div>
+                <div className="text-2xl font-bold">{progress?.totalRunsAttempted || 0}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         )}
 
         {/* Stats by Ascension */}
         {Object.keys(stats.runsByAscension).length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5" />
-                Statistiques par Ascension
-              </CardTitle>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5" />
+              Statistiques par Ascension
+            </CardTitle>
               <CardDescription>
                 {selectedPreset 
                   ? `Performance du preset "${selectedPreset.name}" par niveau d'ascension`
                   : "Performance à chaque niveau d'ascension"}
               </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {Object.entries(stats.runsByAscension)
-                  .sort(([a], [b]) => Number(a) - Number(b))
-                  .map(([ascension, ascensionRuns]) => {
-                    const successful = ascensionRuns.filter((r) => r.successRate > 0);
-                    const completed = ascensionRuns.filter((r) => r.completedFully);
-                    const successRate =
-                      ascensionRuns.length > 0
-                        ? (successful.length / ascensionRuns.length) * 100
-                        : 0;
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {Object.entries(stats.runsByAscension)
+                .sort(([a], [b]) => Number(a) - Number(b))
+                .map(([ascension, ascensionRuns]) => {
+                  const successful = ascensionRuns.filter((r) => r.successRate > 0);
+                  const completed = ascensionRuns.filter((r) => r.completedFully);
+                  const successRate =
+                    ascensionRuns.length > 0
+                      ? (successful.length / ascensionRuns.length) * 100
+                      : 0;
 
-                    return (
-                      <div key={ascension} className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <Badge variant="outline" className="text-lg">
-                              Ascension {ascension}
-                            </Badge>
-                            <span className="text-sm text-muted-foreground">
-                              {ascensionRuns.length} run(s)
-                            </span>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-2xl font-bold">{successRate.toFixed(0)}%</div>
-                            <div className="text-xs text-muted-foreground">Succès</div>
-                          </div>
+                  return (
+                    <div key={ascension} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <Badge variant="outline" className="text-lg">
+                            Ascension {ascension}
+                          </Badge>
+                          <span className="text-sm text-muted-foreground">
+                            {ascensionRuns.length} run(s)
+                          </span>
                         </div>
-                        <div className="grid grid-cols-3 gap-2 text-sm">
-                          <div>
-                            <span className="text-muted-foreground">Réussies: </span>
-                            <span className="font-medium">{successful.length}</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Complétées: </span>
-                            <span className="font-medium text-primary">{completed.length}</span>
-                          </div>
-                          <div>
-                            <span className="text-muted-foreground">Échouées: </span>
-                            <span className="font-medium text-destructive">
-                              {ascensionRuns.length - successful.length}
-                            </span>
-                          </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold">{successRate.toFixed(0)}%</div>
+                          <div className="text-xs text-muted-foreground">Succès</div>
                         </div>
                       </div>
-                    );
-                  })}
-              </div>
-            </CardContent>
-          </Card>
+                      <div className="grid grid-cols-3 gap-2 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Réussies: </span>
+                          <span className="font-medium">{successful.length}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Complétées: </span>
+                          <span className="font-medium text-primary">{completed.length}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Échouées: </span>
+                          <span className="font-medium text-destructive">
+                            {ascensionRuns.length - successful.length}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </CardContent>
+        </Card>
         )}
 
         {/* Recent Runs */}

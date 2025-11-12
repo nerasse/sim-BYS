@@ -1,37 +1,41 @@
-import { getAllLevelConfigs, getLevelConfig } from "~/db/queries/level-configs";
-import { getAllShopRarityConfigs, getShopRarityConfigByWorld } from "~/db/queries/shop-rarity-configs";
-import type { LevelConfig, ShopRarityConfig } from "~/db/schema";
+import { getPresetLevelConfigs } from "~/db/queries/preset-level-configs";
+import { getPresetShopRarityConfigs } from "~/db/queries/preset-shop-rarity-configs";
+import type { PresetLevelConfig, PresetShopRarityConfig } from "~/db/schema";
 import { ASCENSION_OBJECTIVE_MULTIPLIER } from "./constants";
 
 /**
- * Cache for level configs and shop rarity configs
- * Loaded once at startup to avoid DB queries during simulation
+ * Cache instance for a single preset
  */
-class ConfigCache {
-  private levelConfigs: Map<string, LevelConfig> = new Map();
-  private shopRarityConfigs: Map<number, ShopRarityConfig> = new Map();
+class ConfigCacheInstance {
+  private levelConfigs: Map<string, PresetLevelConfig> = new Map();
+  private shopRarityConfigs: Map<number, PresetShopRarityConfig> = new Map();
+  private presetId: string;
   private initialized = false;
 
+  constructor(presetId: string) {
+    this.presetId = presetId;
+  }
+
   /**
-   * Load all configs from DB into memory cache
+   * Load all configs from DB for this preset
    */
   async initialize(): Promise<void> {
     if (this.initialized) return;
 
-    // Load level configs
-    const levels = await getAllLevelConfigs();
+    // Load level configs for this preset
+    const levels = await getPresetLevelConfigs(this.presetId);
     for (const level of levels) {
       this.levelConfigs.set(level.levelId, level);
     }
 
-    // Load shop rarity configs
-    const rarities = await getAllShopRarityConfigs();
+    // Load shop rarity configs for this preset
+    const rarities = await getPresetShopRarityConfigs(this.presetId);
     for (const rarity of rarities) {
       this.shopRarityConfigs.set(rarity.world, rarity);
     }
 
     this.initialized = true;
-    console.log(`✅ Config cache initialized: ${levels.length} levels, ${rarities.length} shop configs`);
+    console.log(`✅ Config cache initialized for preset ${this.presetId}: ${levels.length} levels, ${rarities.length} shop configs`);
   }
 
   /**
@@ -99,14 +103,14 @@ class ConfigCache {
   /**
    * Get all level configs (for UI)
    */
-  getAllLevelConfigs(): LevelConfig[] {
+  getAllLevelConfigs(): PresetLevelConfig[] {
     return Array.from(this.levelConfigs.values());
   }
 
   /**
    * Get all shop rarity configs (for UI)
    */
-  getAllShopRarityConfigs(): ShopRarityConfig[] {
+  getAllShopRarityConfigs(): PresetShopRarityConfig[] {
     return Array.from(this.shopRarityConfigs.values());
   }
 
@@ -119,33 +123,88 @@ class ConfigCache {
     this.shopRarityConfigs.clear();
     await this.initialize();
   }
+}
 
   /**
-   * Update a single level config in cache
+ * Multi-preset config cache manager
+ * Maintains a separate cache instance for each preset
+ */
+class PresetConfigCache {
+  private caches: Map<string, ConfigCacheInstance> = new Map();
+
+  /**
+   * Get or initialize cache for a specific preset
    */
-  async updateLevelConfig(levelId: string): Promise<void> {
-    const config = await getLevelConfig(levelId);
-    if (config) {
-      this.levelConfigs.set(levelId, config);
+  async getOrInitialize(presetId: string): Promise<ConfigCacheInstance> {
+    if (!this.caches.has(presetId)) {
+      const cache = new ConfigCacheInstance(presetId);
+      await cache.initialize();
+      this.caches.set(presetId, cache);
+    }
+    return this.caches.get(presetId)!;
+  }
+
+  /**
+   * Get level objective for a preset
+   */
+  async getLevelObjective(presetId: string, levelId: string, ascension: number = 0): Promise<number> {
+    const cache = await this.getOrInitialize(presetId);
+    return cache.getLevelObjective(levelId, ascension);
+  }
+
+  /**
+   * Get level reward for a preset
+   */
+  async getLevelReward(presetId: string, levelId: string): Promise<number> {
+    const cache = await this.getOrInitialize(presetId);
+    return cache.getLevelReward(levelId);
+  }
+
+  /**
+   * Check if level is boss for a preset
+   */
+  async isBossLevel(presetId: string, levelId: string): Promise<boolean> {
+    const cache = await this.getOrInitialize(presetId);
+    return cache.isBossLevel(levelId);
+  }
+
+  /**
+   * Get shop rarity weights for a preset
+   */
+  async getShopRarityWeights(presetId: string, world: number): Promise<Record<string, number>> {
+    const cache = await this.getOrInitialize(presetId);
+    return cache.getShopRarityWeights(world);
+  }
+
+  /**
+   * Reload cache for a specific preset
+   */
+  async reloadPreset(presetId: string): Promise<void> {
+    const cache = this.caches.get(presetId);
+    if (cache) {
+      await cache.reload();
     }
   }
 
   /**
-   * Update a single shop rarity config in cache
+   * Clear cache for a specific preset
    */
-  async updateShopRarityConfig(world: number): Promise<void> {
-    const config = await getShopRarityConfigByWorld(world);
-    if (config) {
-      this.shopRarityConfigs.set(world, config);
-    }
+  clearPreset(presetId: string): void {
+    this.caches.delete(presetId);
+  }
+
+  /**
+   * Clear all caches
+   */
+  clearAll(): void {
+    this.caches.clear();
   }
 }
 
 // Singleton instance
-export const configCache = new ConfigCache();
+export const presetConfigCache = new PresetConfigCache();
 
-// Auto-initialize on import (server-side only)
-if (typeof window === "undefined") {
-  configCache.initialize().catch(console.error);
-}
+// For backward compatibility - keep old export name but mark as deprecated
+/** @deprecated Use presetConfigCache instead */
+export const configCache = presetConfigCache;
 

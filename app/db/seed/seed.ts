@@ -1,5 +1,7 @@
 import { getDb } from "../client";
 import * as schema from "../schema";
+import { seedEffectTargets } from "./effect-targets.seed";
+import { seedEffects } from "./effects.seed";
 import { symbolsData } from "./symbols.seed";
 import { combosData } from "./combos.seed";
 import { bonusesData } from "./bonuses.seed";
@@ -28,6 +30,10 @@ async function seed() {
     await db.delete(schema.presetComboConfigs);
     await db.delete(schema.presetSymbolConfigs);
     await db.delete(schema.presets);
+    // Supprimer les object selection presets
+    await db.delete(schema.objectSelectionBonuses);
+    await db.delete(schema.objectSelectionJokers);
+    await db.delete(schema.objectSelectionPresets);
     await db.delete(schema.globalStats);
     await db.delete(schema.playerProgress);
     await db.delete(schema.shopRarityConfigs);
@@ -37,6 +43,16 @@ async function seed() {
     await db.delete(schema.bonuses);
     await db.delete(schema.combinations);
     await db.delete(schema.symbols);
+    await db.delete(schema.effects);
+    await db.delete(schema.effectTargets);
+
+    // Insert effect targets
+    console.log("🎯 Inserting effect targets...");
+    await seedEffectTargets();
+
+    // Insert effects
+    console.log("⚡ Inserting effects...");
+    await seedEffects();
 
     // Insert symbols
     console.log("📊 Inserting symbols...");

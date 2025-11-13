@@ -7,8 +7,7 @@ export const jokersData: NewJoker[] = [
     description: "Augmente le poids d'un symbole au choix de 20%",
     rarity: "common",
     basePrice: 3,
-    effects: [{ type: "increase_weight", value: 20, target: "player_choice" }],
-    tags: ["weight", "symbol"],
+    effects: [{ type: "increase_weight", value: 20, scalingPerLevel: 0, maxLevel: 1, target: "player_choice" }],
     sellValue: 1,
   },
   {
@@ -17,8 +16,7 @@ export const jokersData: NewJoker[] = [
     description: "Augmente la chance de 3 points",
     rarity: "common",
     basePrice: 4,
-    effects: [{ type: "increase_chance", value: 3 }],
-    tags: ["chance"],
+    effects: [{ type: "increase_chance", value: 3, scalingPerLevel: 0, maxLevel: 1 }],
     sellValue: 1,
   },
   {
@@ -27,8 +25,7 @@ export const jokersData: NewJoker[] = [
     description: "Augmente le multiplicateur de combinaison de 0.5",
     rarity: "uncommon",
     basePrice: 5,
-    effects: [{ type: "increase_combo_multiplier", value: 0.5 }],
-    tags: ["multiplier", "combo"],
+    effects: [{ type: "increase_combo_multiplier", value: 0.5, scalingPerLevel: 0, maxLevel: 1 }],
     sellValue: 2,
   },
   {
@@ -37,8 +34,7 @@ export const jokersData: NewJoker[] = [
     description: "Augmente le multiplicateur de symbole de 0.3",
     rarity: "uncommon",
     basePrice: 5,
-    effects: [{ type: "increase_symbol_multiplier", value: 0.3 }],
-    tags: ["multiplier", "symbol"],
+    effects: [{ type: "increase_symbol_multiplier", value: 0.3, scalingPerLevel: 0, maxLevel: 1 }],
     sellValue: 2,
   },
   {
@@ -47,8 +43,7 @@ export const jokersData: NewJoker[] = [
     description: "Ajoute 2 rerolls gratuits en boutique",
     rarity: "rare",
     basePrice: 8,
-    effects: [{ type: "free_rerolls", value: 2 }],
-    tags: ["shop", "reroll"],
+    effects: [{ type: "free_rerolls", value: 2, scalingPerLevel: 0, maxLevel: 1 }],
     sellValue: 3,
   },
   {
@@ -57,8 +52,7 @@ export const jokersData: NewJoker[] = [
     description: "Autorise à s'endetter pour acheter des jokers",
     rarity: "epic",
     basePrice: 12,
-    effects: [{ type: "allow_debt", value: 1 }],
-    tags: ["shop", "economy"],
+    effects: [{ type: "allow_debt", value: 1, scalingPerLevel: 0, maxLevel: 1 }],
     sellValue: 5,
   },
   {
@@ -67,8 +61,7 @@ export const jokersData: NewJoker[] = [
     description: "Augmente la valeur de revente des jokers de 1$ par niveau",
     rarity: "uncommon",
     basePrice: 6,
-    effects: [{ type: "increase_sell_value", value: 1 }],
-    tags: ["economy", "shop"],
+    effects: [{ type: "increase_sell_value", value: 1, scalingPerLevel: 0, maxLevel: 1 }],
     sellValue: 2,
   },
   {
@@ -77,8 +70,7 @@ export const jokersData: NewJoker[] = [
     description: "Ajoute 1 spin supplémentaire par niveau",
     rarity: "rare",
     basePrice: 10,
-    effects: [{ type: "extra_spins", value: 1 }],
-    tags: ["spins"],
+    effects: [{ type: "extra_spins", value: 1, scalingPerLevel: 0, maxLevel: 1 }],
     sellValue: 4,
   },
   {
@@ -89,9 +81,8 @@ export const jokersData: NewJoker[] = [
     rarity: "uncommon",
     basePrice: 7,
     effects: [
-      { type: "conditional_multiplier", value: 1, target: "10,J,Q" },
+      { type: "conditional_multiplier", value: 1, scalingPerLevel: 0, maxLevel: 1, target: "10,J,Q" },
     ],
-    tags: ["multiplier", "conditional"],
     sellValue: 3,
   },
   {
@@ -100,8 +91,7 @@ export const jokersData: NewJoker[] = [
     description: "Si K, A font partie d'une connection, ajoute +1.5 multiplicateur",
     rarity: "rare",
     basePrice: 9,
-    effects: [{ type: "conditional_multiplier", value: 1.5, target: "K,A" }],
-    tags: ["multiplier", "conditional"],
+    effects: [{ type: "conditional_multiplier", value: 1.5, scalingPerLevel: 0, maxLevel: 1, target: "K,A" }],
     sellValue: 4,
   },
   {
@@ -112,9 +102,8 @@ export const jokersData: NewJoker[] = [
     rarity: "epic",
     basePrice: 15,
     effects: [
-      { type: "random_permanent_multiplier", value: 0.25 },
+      { type: "random_permanent_multiplier", value: 0.25, scalingPerLevel: 0, maxLevel: 1 },
     ],
-    tags: ["multiplier", "chance", "permanent"],
     sellValue: 6,
   },
   {
@@ -123,8 +112,7 @@ export const jokersData: NewJoker[] = [
     description: "Octroie 3$ supplémentaires à chaque fin de niveau",
     rarity: "common",
     basePrice: 4,
-    effects: [{ type: "bonus_dollars_per_level", value: 3 }],
-    tags: ["economy", "level"],
+    effects: [{ type: "bonus_dollars_per_level", value: 3, scalingPerLevel: 0, maxLevel: 1 }],
     sellValue: 1,
   },
   {
@@ -134,10 +122,9 @@ export const jokersData: NewJoker[] = [
     rarity: "uncommon",
     basePrice: 5,
     effects: [
-      { type: "extra_spins", value: 2 },
-      { type: "decrease_chance", value: 5 },
+      { type: "extra_spins", value: 2, scalingPerLevel: 0, maxLevel: 1 },
+      { type: "decrease_chance", value: 5, scalingPerLevel: 0, maxLevel: 1 },
     ],
-    tags: ["spins", "chance", "risky"],
     sellValue: 2,
   },
   {
@@ -148,9 +135,8 @@ export const jokersData: NewJoker[] = [
     rarity: "rare",
     basePrice: 10,
     effects: [
-      { type: "multiplier_per_dollar", value: 0.1, target: "symbol" },
+      { type: "multiplier_per_dollar", value: 0.1, scalingPerLevel: 0, maxLevel: 1, target: "symbol" },
     ],
-    tags: ["multiplier", "economy", "scaling"],
     sellValue: 4,
   },
   {
@@ -160,8 +146,7 @@ export const jokersData: NewJoker[] = [
       "Ajoute +0.1 multiplicateur de combo par tranche de 5$ possédés",
     rarity: "epic",
     basePrice: 14,
-    effects: [{ type: "multiplier_per_dollar", value: 0.1, target: "combo" }],
-    tags: ["multiplier", "economy", "scaling"],
+    effects: [{ type: "multiplier_per_dollar", value: 0.1, scalingPerLevel: 0, maxLevel: 1, target: "combo" }],
     sellValue: 6,
   },
   {
@@ -171,10 +156,9 @@ export const jokersData: NewJoker[] = [
     rarity: "uncommon",
     basePrice: 6,
     effects: [
-      { type: "increase_xp_percent", value: 50 },
-      { type: "increase_dollars_percent", value: 50 },
+      { type: "increase_xp_percent", value: 50, scalingPerLevel: 0, maxLevel: 1 },
+      { type: "increase_dollars_percent", value: 50, scalingPerLevel: 0, maxLevel: 1 },
     ],
-    tags: ["xp", "economy", "level"],
     sellValue: 2,
   },
   {
@@ -184,8 +168,7 @@ export const jokersData: NewJoker[] = [
       "Chance augmentée de +1 à chaque combo (max +20 cumulable)",
     rarity: "rare",
     basePrice: 8,
-    effects: [{ type: "chance_per_combo", value: 1 }],
-    tags: ["chance", "scaling", "combo"],
+    effects: [{ type: "chance_per_combo", value: 1, scalingPerLevel: 0, maxLevel: 1 }],
     sellValue: 3,
   },
   {
@@ -199,10 +182,11 @@ export const jokersData: NewJoker[] = [
       {
         type: "symbol_drop",
         value: 2,
+        scalingPerLevel: 0,
+        maxLevel: 1,
         target: "10,J,Q,K,A",
       },
     ],
-    tags: ["economy", "symbol", "chance"],
     sellValue: 2,
   },
   {
@@ -216,10 +200,11 @@ export const jokersData: NewJoker[] = [
       {
         type: "symbol_drop",
         value: 50,
+        scalingPerLevel: 0,
+        maxLevel: 1,
         target: "P1,P2,P3",
       },
     ],
-    tags: ["tokens", "symbol", "chance"],
     sellValue: 4,
   },
   {
@@ -229,8 +214,7 @@ export const jokersData: NewJoker[] = [
       "Lorsqu'un spin n'est pas gagnant, chance +2 (cumulable jusqu'à +20, ne se réinitialise pas)",
     rarity: "epic",
     basePrice: 12,
-    effects: [{ type: "persistent_chance_on_loss", value: 2 }],
-    tags: ["chance", "scaling", "persistent"],
+    effects: [{ type: "persistent_chance_on_loss", value: 2, scalingPerLevel: 0, maxLevel: 1 }],
     sellValue: 5,
   },
   {
@@ -244,10 +228,11 @@ export const jokersData: NewJoker[] = [
       {
         type: "combo_multiplier_on_symbol_type",
         value: 1.5,
+        scalingPerLevel: 0,
+        maxLevel: 1,
         target: "premium",
       },
     ],
-    tags: ["multiplier", "combo", "premium"],
     sellValue: 4,
   },
   {
@@ -261,10 +246,11 @@ export const jokersData: NewJoker[] = [
       {
         type: "combo_multiplier_on_symbol_type",
         value: 1.5,
+        scalingPerLevel: 0,
+        maxLevel: 1,
         target: "basic",
       },
     ],
-    tags: ["multiplier", "combo", "basic"],
     sellValue: 3,
   },
   {
@@ -274,8 +260,7 @@ export const jokersData: NewJoker[] = [
       "Les 10, J, Q comptent comme un seul symbole et connectent entre eux (prennent la valeur la plus élevée)",
     rarity: "legendary",
     basePrice: 20,
-    effects: [{ type: "unify_symbols", value: 1, target: "10,J,Q" }],
-    tags: ["symbol", "connection", "legendary"],
+    effects: [{ type: "unify_symbols", value: 1, scalingPerLevel: 0, maxLevel: 1, target: "10,J,Q" }],
     sellValue: 10,
   },
   {
@@ -285,8 +270,7 @@ export const jokersData: NewJoker[] = [
       "Le joueur choisit parmi 3 bonus à équiper, puis le joker est détruit",
     rarity: "epic",
     basePrice: 15,
-    effects: [{ type: "grant_bonus_choice", value: 3 }],
-    tags: ["bonus", "one-time"],
+    effects: [{ type: "grant_bonus_choice", value: 3, scalingPerLevel: 0, maxLevel: 1 }],
     sellValue: 0,
   },
   {
@@ -296,8 +280,7 @@ export const jokersData: NewJoker[] = [
       "Augmente la rareté d'un bonus équipé de 1 cran, puis ce joker est détruit",
     rarity: "legendary",
     basePrice: 25,
-    effects: [{ type: "upgrade_bonus_rarity", value: 1 }],
-    tags: ["bonus", "one-time", "legendary"],
+    effects: [{ type: "upgrade_bonus_rarity", value: 1, scalingPerLevel: 0, maxLevel: 1 }],
     sellValue: 0,
   },
 ];

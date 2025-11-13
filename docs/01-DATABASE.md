@@ -69,15 +69,13 @@ L'application utilise une architecture **centrée sur les presets**. Chaque pres
   description: string
   type: "starting" | "game"
   rarity: "common" | "uncommon" | "rare" | "epic" | "legendary"
-  effects: json[]
-  baseValue: number
-  scalingPerLevel: number
-  maxLevel: number
+  effects: json[]              // Array<{ type, value, scalingPerLevel, maxLevel, target? }>
   isDestructible: boolean
 }
 ```
 **Types** : 4 de départ + 12 de partie  
-**Usage** : Bibliothèque, disponibilité contrôlée par preset
+**Usage** : Bibliothèque, disponibilité contrôlée par preset  
+**Note** : Chaque effet a ses propres value/scalingPerLevel/maxLevel. Condition d'obtention = effet trigger (obtain_starting, obtain_boss_or_levelup)
 
 #### `jokers` (25+)
 ```typescript
@@ -88,11 +86,11 @@ L'application utilise une architecture **centrée sur les presets**. Chaque pres
   rarity: "common" | "uncommon" | "rare" | "epic" | "legendary"
   basePrice: number
   sellValue: number
-  effects: json[]
-  tags: string[]
+  effects: json[]              // Array<{ type, value, scalingPerLevel, maxLevel, target? }>
 }
 ```
-**Usage** : Bibliothèque, disponibilité contrôlée par preset
+**Usage** : Bibliothèque, disponibilité contrôlée par preset  
+**Note** : Chaque effet a ses propres value/scalingPerLevel/maxLevel
 
 #### `characters` - Personnages
 ```typescript
@@ -384,7 +382,7 @@ db/queries/
 ## Seeds
 
 Données initiales dans `db/seed/`:
-- `effects.seed.ts` - 11 effets de base
+- `effects.seed.ts` - 13 effets de base (inclut 2 effets trigger d'obtention)
 - `symbols.seed.ts` - 9 symboles
 - `combos.seed.ts` - 11 combinaisons
 - `bonuses.seed.ts` - 16 bonus

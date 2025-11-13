@@ -26,8 +26,7 @@ export async function createJoker(data: {
   description: string;
   rarity: "common" | "uncommon" | "rare" | "epic" | "legendary";
   basePrice: number;
-  effects: Array<{ type: string; value: number; target?: string }>;
-  tags: string[];
+  effects: Array<{ type: string; value: number; scalingPerLevel: number; maxLevel: number; target?: string }>;
   sellValue: number;
 }) {
   const db = await getDb();
@@ -40,7 +39,6 @@ export async function createJoker(data: {
       rarity: data.rarity,
       basePrice: data.basePrice,
       effects: data.effects,
-      tags: data.tags,
       sellValue: data.sellValue,
     })
     .returning();
@@ -54,8 +52,7 @@ export async function updateJoker(
     description?: string;
     rarity?: "common" | "uncommon" | "rare" | "epic" | "legendary";
     basePrice?: number;
-    effects?: Array<{ type: string; value: number; target?: string }>;
-    tags?: string[];
+    effects?: Array<{ type: string; value: number; scalingPerLevel: number; maxLevel: number; target?: string }>;
     sellValue?: number;
   }
 ) {
@@ -66,7 +63,6 @@ export async function updateJoker(
   if (data.rarity) updateData.rarity = data.rarity;
   if (data.basePrice !== undefined) updateData.basePrice = data.basePrice;
   if (data.effects) updateData.effects = data.effects;
-  if (data.tags) updateData.tags = data.tags;
   if (data.sellValue !== undefined) updateData.sellValue = data.sellValue;
   
   const [joker] = await db

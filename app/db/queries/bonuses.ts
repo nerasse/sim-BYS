@@ -46,11 +46,7 @@ export async function createBonus(data: {
   description: string;
   type: "starting" | "game";
   rarity: "common" | "uncommon" | "rare" | "epic" | "legendary";
-  effects: Array<{ type: string; value: number; target?: string }>;
-  baseValue: number;
-  scalingPerLevel: number;
-  maxLevel: number;
-  obtainCondition?: string;
+  effects: Array<{ type: string; value: number; scalingPerLevel: number; maxLevel: number; target?: string }>;
   isDestructible: boolean;
 }) {
   const db = await getDb();
@@ -63,10 +59,6 @@ export async function createBonus(data: {
       type: data.type,
       rarity: data.rarity,
       effects: data.effects,
-      baseValue: data.baseValue,
-      scalingPerLevel: data.scalingPerLevel,
-      maxLevel: data.maxLevel,
-      obtainCondition: data.obtainCondition || null,
       isDestructible: data.isDestructible,
     })
     .returning();
@@ -80,11 +72,7 @@ export async function updateBonus(
     description?: string;
     type?: "starting" | "game";
     rarity?: "common" | "uncommon" | "rare" | "epic" | "legendary";
-    effects?: Array<{ type: string; value: number; target?: string }>;
-    baseValue?: number;
-    scalingPerLevel?: number;
-    maxLevel?: number;
-    obtainCondition?: string;
+    effects?: Array<{ type: string; value: number; scalingPerLevel: number; maxLevel: number; target?: string }>;
     isDestructible?: boolean;
   }
 ) {
@@ -95,10 +83,6 @@ export async function updateBonus(
   if (data.type) updateData.type = data.type;
   if (data.rarity) updateData.rarity = data.rarity;
   if (data.effects) updateData.effects = data.effects;
-  if (data.baseValue !== undefined) updateData.baseValue = data.baseValue;
-  if (data.scalingPerLevel !== undefined) updateData.scalingPerLevel = data.scalingPerLevel;
-  if (data.maxLevel !== undefined) updateData.maxLevel = data.maxLevel;
-  if (data.obtainCondition !== undefined) updateData.obtainCondition = data.obtainCondition || null;
   if (data.isDestructible !== undefined) updateData.isDestructible = data.isDestructible;
   
   const [bonus] = await db

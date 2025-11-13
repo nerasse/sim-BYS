@@ -48,10 +48,6 @@ export async function action({ request }: ActionFunctionArgs) {
       type: formData.get("type") as "starting" | "game",
       rarity: formData.get("rarity") as "common" | "uncommon" | "rare" | "epic" | "legendary",
       effects,
-      baseValue: parseFloat(formData.get("baseValue") as string),
-      scalingPerLevel: parseFloat(formData.get("scalingPerLevel") as string),
-      maxLevel: parseInt(formData.get("maxLevel") as string),
-      obtainCondition: formData.get("obtainCondition") as string || undefined,
       isDestructible: formData.get("isDestructible") === "true",
     };
 
@@ -151,14 +147,6 @@ function BonusListItem({ bonus, onEdit }: { bonus: any; onEdit: () => void }) {
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">Effets:</span>
               <span className="font-medium">{bonus.effects.length}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">Valeur:</span>
-              <span className="font-medium">{bonus.baseValue}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">Max level:</span>
-              <span className="font-medium">{bonus.maxLevel}</span>
             </div>
           </div>
         </div>
@@ -267,43 +255,6 @@ function BonusForm({
               initialEffects={selectedEffects}
               onChange={setSelectedEffects}
             />
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            <div className="space-y-2">
-              <Label>Valeur de base</Label>
-              <Input
-                name="baseValue"
-                type="number"
-                step="0.1"
-                defaultValue={bonus?.baseValue || 0}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Scaling /niveau</Label>
-              <Input
-                name="scalingPerLevel"
-                type="number"
-                step="0.1"
-                defaultValue={bonus?.scalingPerLevel || 0}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Max level</Label>
-              <Input
-                name="maxLevel"
-                type="number"
-                defaultValue={bonus?.maxLevel || 1}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Condition d'obtention</Label>
-            <Input name="obtainCondition" defaultValue={bonus?.obtainCondition || ""} />
           </div>
 
           <div className="flex items-center space-x-2">

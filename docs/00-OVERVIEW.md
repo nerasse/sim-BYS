@@ -58,6 +58,7 @@ Remix utilise le routing basé sur les fichiers. Chaque fichier dans `app/routes
 - **Lecture seule** : Pas de CRUD (modification = adaptation code simulation)
 - **Référencés par** : Bonus, jokers, personnages
 - **Sélection** : Dropdown dans objets pour utiliser effets existants
+- **Effets trigger** : Définissent conditions d'obtention des bonus (obtain_starting, obtain_boss_or_levelup)
 
 ### ⚙️ Configuration par Preset
 - **Symboles** : Poids, valeurs, multiplicateurs

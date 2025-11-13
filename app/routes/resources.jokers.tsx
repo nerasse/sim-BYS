@@ -34,12 +34,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (intent === "create" || intent === "update") {
     const effectsJSON = formData.get("effects") as string;
-    const tagsJSON = formData.get("tags") as string;
     let effects = [];
-    let tags = [];
     try {
       effects = JSON.parse(effectsJSON || '[]');
-      tags = JSON.parse(tagsJSON || '[]');
     } catch (e) {
       return json({ success: false, error: "Invalid JSON" });
     }
@@ -50,7 +47,6 @@ export async function action({ request }: ActionFunctionArgs) {
       rarity: formData.get("rarity") as "common" | "uncommon" | "rare" | "epic" | "legendary",
       basePrice: parseInt(formData.get("basePrice") as string),
       effects,
-      tags,
       sellValue: parseInt(formData.get("sellValue") as string),
     };
 
@@ -143,7 +139,7 @@ function JokerListItem({ joker, onEdit }: { joker: any; onEdit: () => void }) {
             <Badge className={rarityColors[joker.rarity]}>{joker.rarity}</Badge>
           </div>
           <p className="text-muted-foreground text-sm mb-3">{joker.description}</p>
-          <div className="flex gap-6 text-sm mb-2">
+          <div className="flex gap-6 text-sm">
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">Prix:</span>
               <span className="font-medium">{joker.basePrice}$</span>
@@ -157,15 +153,6 @@ function JokerListItem({ joker, onEdit }: { joker: any; onEdit: () => void }) {
               <span className="font-medium">{joker.effects.length}</span>
             </div>
           </div>
-          {joker.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {joker.tags.map((tag: string) => (
-                <Badge key={tag} variant="outline" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          )}
         </div>
         <div className="flex gap-2 shrink-0">
           <Button size="sm" variant="outline" onClick={onEdit}>
@@ -199,7 +186,6 @@ function JokerForm({
 }) {
   const fetcher = useFetcher();
   const [selectedEffects, setSelectedEffects] = useState(joker?.effects || []);
-  const [tags, setTags] = useState((joker?.tags || []).join(", "));
 
   return (
     <Card>
@@ -217,12 +203,6 @@ function JokerForm({
             effectsInput.name = "effects";
             effectsInput.value = JSON.stringify(selectedEffects);
             form.appendChild(effectsInput);
-            
-            const tagsInput = document.createElement("input");
-            tagsInput.type = "hidden";
-            tagsInput.name = "tags";
-            tagsInput.value = JSON.stringify(tags.split(",").map(t => t.trim()).filter(Boolean));
-            form.appendChild(tagsInput);
             
             setTimeout(onCancel, 100);
           }}
@@ -283,15 +263,6 @@ function JokerForm({
               availableEffects={availableEffects}
               initialEffects={selectedEffects}
               onChange={setSelectedEffects}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Tags (séparés par virgule)</Label>
-            <Input
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="rare, multiplicateur, score"
             />
           </div>
 

@@ -79,12 +79,8 @@ export const bonuses = sqliteTable("bonuses", {
     enum: ["common", "uncommon", "rare", "epic", "legendary"],
   }).notNull(),
   effects: text("effects", { mode: "json" })
-    .$type<Array<{ type: string; value: number; target?: string }>>()
+    .$type<Array<{ type: string; value: number; scalingPerLevel: number; maxLevel: number; target?: string }>>()
     .notNull(),
-  baseValue: real("base_value").notNull().default(0),
-  scalingPerLevel: real("scaling_per_level").notNull().default(0),
-  maxLevel: integer("max_level").notNull().default(1),
-  obtainCondition: text("obtain_condition"),
   isDestructible: integer("is_destructible", { mode: "boolean" })
     .notNull()
     .default(false),
@@ -106,9 +102,8 @@ export const jokers = sqliteTable("jokers", {
   }).notNull(),
   basePrice: integer("base_price").notNull(),
   effects: text("effects", { mode: "json" })
-    .$type<Array<{ type: string; value: number; target?: string }>>()
+    .$type<Array<{ type: string; value: number; scalingPerLevel: number; maxLevel: number; target?: string }>>()
     .notNull(),
-  tags: text("tags", { mode: "json" }).$type<string[]>().notNull(),
   sellValue: integer("sell_value").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()

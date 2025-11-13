@@ -129,6 +129,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 **Display** :
 - **Cibles d'effets** : Section collapsible (réduite par défaut)
+- **Filtre par cible** : Dropdown pour filtrer les effets selon leur cible
 - **Table liste** en lecture seule
 - Colonnes : Nom, Code, Type, Catégorie, Cible, Valeur défaut
 - ⚠️ Warning : Modification nécessite adaptation code simulation

@@ -5,6 +5,7 @@ import { getAllEffects } from "~/db/queries/effects";
 import { PageHeader } from "~/components/layout/page-header";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { EFFECT_TARGETS } from "~/lib/constants/effect-types";
 import { useState } from "react";
@@ -30,6 +31,15 @@ const categoryColors: Record<string, string> = {
 export default function Effects() {
   const { effects } = useLoaderData<typeof loader>();
   const [showTargets, setShowTargets] = useState(false);
+  const [selectedTarget, setSelectedTarget] = useState<string>("all");
+
+  // Get unique targets from effects
+  const availableTargets = Array.from(new Set(effects.map(effect => effect.target).filter((target): target is string => Boolean(target))));
+
+  // Filter effects based on selected target
+  const filteredEffects = selectedTarget === "all"
+    ? effects
+    : effects.filter(effect => effect.target === selectedTarget);
 
   return (
     <div className="space-y-8">
@@ -80,6 +90,32 @@ export default function Effects() {
           <p className="text-sm text-muted-foreground mt-2">
             ⚠️ Ces effets sont référencés par le moteur. Pour en modifier/ajouter, il faut adapter le code de simulation.
           </p>
+
+          {/* Target Filter */}
+          <div className="mt-4 flex items-center gap-2">
+            <label htmlFor="target-filter" className="text-sm font-medium">
+              Filtrer par cible:
+            </label>
+            <Select value={selectedTarget} onValueChange={setSelectedTarget}>
+              <SelectTrigger id="target-filter" className="w-48">
+                <SelectValue placeholder="Toutes les cibles" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les cibles</SelectItem>
+                {availableTargets.map(target => {
+                  const targetConfig = EFFECT_TARGETS.find(t => t.value === target);
+                  return (
+                    <SelectItem key={target} value={target}>
+                      <div className="flex items-center gap-2">
+                        {targetConfig?.icon && <span>{targetConfig.icon}</span>}
+                        {targetConfig?.label || target}
+                      </div>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
       {/* Table List - Read Only */}
@@ -95,7 +131,7 @@ export default function Effects() {
             </tr>
           </thead>
           <tbody>
-            {effects.map((effect) => (
+            {filteredEffects.map((effect) => (
               <tr key={effect.id} className="border-b hover:bg-muted/30 transition-colors">
                 <td className="p-4">
                   <div className="flex items-center gap-3">
@@ -118,17 +154,38 @@ export default function Effects() {
                   </Badge>
                 </td>
                 <td className="p-4">
-                  <span className="text-sm">{effect.target || "-"}</span>
+                  {effect.target ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">{effect.target}</span>
+                      {(() => {
+                        const targetConfig = EFFECT_TARGETS.find(t => t.value === effect.target);
+                        return targetConfig ? (
+                          <span className="text-xs">{targetConfig.icon}</span>
+                        ) : null;
+                      })()}
+                    </div>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">-</span>
+                  )}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
 
-        {effects.length === 0 && (
+        {filteredEffects.length === 0 && (
           <div className="p-12 text-center text-muted-foreground">
-            <p>Aucun effet dans la base</p>
-            <p className="text-sm mt-2">Exécutez <code className="bg-muted px-2 py-1 rounded">npm run db:seed</code></p>
+            {selectedTarget === "all" ? (
+              <>
+                <p>Aucun effet dans la base</p>
+                <p className="text-sm mt-2">Exécutez <code className="bg-muted px-2 py-1 rounded">npm run db:seed</code></p>
+              </>
+            ) : (
+              <>
+                <p>Aucun effet pour la cible sélectionnée</p>
+                <p className="text-sm mt-2">Essayez une autre cible ou affichez toutes les cibles</p>
+              </>
+            )}
           </div>
         )}
         </div>

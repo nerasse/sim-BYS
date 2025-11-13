@@ -1,12 +1,9 @@
-# AGENTS.md - Development Guidelines
+# AGENT INSTRUCTIONS - CRITICAL
 
-## Application Context
+## 🚨 CRITICAL INSTRUCTIONS - READ FIRST
 
-**Fullstack roguelike slot machine simulator** - Professional game design tool for configuring and testing mechanics through **presets**. Features 5×3 grid, 11 combo types, progression system, shop, bonuses, jokers, and ascension (0-20+ difficulty). Built for game designers to balance and optimize slot machine mechanics.
-
-## Documentation First
-
-**Always check `docs/` directory before modifying code** - especially:
+### 1. DOCUMENTATION FIRST (MANDATORY)
+**ALWAYS check `docs/` directory BEFORE modifying ANY code** - NO EXCEPTIONS:
 
 - `00-OVERVIEW.md` - Architecture overview and workflow
 - `01-DATABASE.md` - Database schema and relationships
@@ -14,14 +11,33 @@
 - `03-UI-ROUTES.md` - Route structure and patterns
 - `04-DEVELOPMENT.md` - Development workflows and conventions
 
-## Documentation Updates
+**FAILURE TO FOLLOW THIS RULE WILL RESULT IN INCONSISTENT CODEBASE**
 
-**Update relevant docs after making changes** - maintain consistency between code and documentation
+### 2. DOCUMENTATION UPDATES (MANDATORY)
+**Update relevant docs IMMEDIATELY after making changes** - maintain consistency:
 
 - Update only affected sections in appropriate `docs/*.md` files
 - Keep minimal format: every word counts, no duplication, no information loss
 - Follow current concise style with maximum density
-- **Also update this AGENTS.md file** when adding new commands, patterns, or architectural changes
+- **Also update this CLAUDE.md file** when adding new commands, patterns, or architectural changes
+
+### 3. ENFORCEMENT
+- Documentation reading is NOT optional
+- Code modifications without documentation review are FORBIDDEN
+- Always cite specific documentation sections when making changes
+- Ask for clarification if documentation is unclear
+
+## Documentation Reading Pattern (ENFORCED)
+When working on ANY task:
+1. **First**: Read relevant `docs/*.md` files
+2. **Second**: Check if change conflicts with documented patterns
+3. **Third**: Implement change following documented conventions
+4. **Fourth**: Update documentation to reflect changes
+5. **Never**: Skip documentation reading or updates
+
+## Application Context
+
+**Fullstack roguelike slot machine simulator** - Professional game design tool for configuring and testing mechanics through **presets**. Features 5×3 grid, 11 combo types, progression system, shop, bonuses, jokers, and ascension (0-20+ difficulty). Built for game designers to balance and optimize slot machine mechanics.
 
 ## Commands
 

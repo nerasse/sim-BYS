@@ -32,7 +32,6 @@ export async function createEffect(data: {
   type: string;
   category: "passive" | "active" | "trigger";
   target?: string;
-  defaultValue: number;
   unit?: string;
   icon?: string;
   config?: any;
@@ -48,7 +47,6 @@ export async function createEffect(data: {
       type: data.type,
       category: data.category,
       target: data.target || null,
-      defaultValue: data.defaultValue,
       unit: data.unit || null,
       icon: data.icon || null,
       config: data.config || null,
@@ -66,7 +64,6 @@ export async function updateEffect(
     type?: string;
     category?: "passive" | "active" | "trigger";
     target?: string;
-    defaultValue?: number;
     unit?: string;
     icon?: string;
     config?: any;
@@ -80,7 +77,6 @@ export async function updateEffect(
   if (data.type) updateData.type = data.type;
   if (data.category) updateData.category = data.category;
   if (data.target !== undefined) updateData.target = data.target || null;
-  if (data.defaultValue !== undefined) updateData.defaultValue = data.defaultValue;
   if (data.unit !== undefined) updateData.unit = data.unit || null;
   if (data.icon !== undefined) updateData.icon = data.icon || null;
   if (data.config !== undefined) updateData.config = data.config || null;

@@ -101,6 +101,42 @@ Application effets bonus.
 ### `joker-applier.ts`
 Application effets jokers.
 
+## Système d'Effets
+
+### Architecture d'Effets
+Les effets sont définis dans la table `effects` comme bibliothèque de comportements purs. Les valeurs spécifiques sont définies dans les objets qui les utilisent :
+
+```typescript
+// Dans bonus/joker/personnage
+effects: Array<{
+  type: string;    // Référence à effects.name
+  value: number;   // Valeur spécifique à ce contexte
+  target?: string; // Override cible si nécessaire
+}>
+```
+
+### Types d'Effets
+- **multiplier**: Multiplicateur (ex: 1.5 = +50%)
+- **additive**: Valeur additive (ex: 10 = +10)
+- **percentage**: Pourcentage (ex: 0.2 = +20%)
+- **action**: Action direct (ex: spin supplémentaire)
+- **trigger**: Déclenchement conditionnel
+
+### Application des Effets
+```typescript
+// Valeurs par défaut selon type (utilisé dans UI)
+getDefaultValueForType(type: string): number {
+  switch (type) {
+    case "multiplier": return 1.0;  // Neutre
+    case "percentage": return 0.1;  // 10%
+    case "additive": return 10;     // +10
+    case "action":
+    case "trigger": return 1;       // Comptage
+    default: return 1;              // Fallback
+  }
+}
+```
+
 ### `shop-manager.ts`
 Génération boutique. **Utilise configCache (legacy)**.
 

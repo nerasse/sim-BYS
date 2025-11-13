@@ -10,7 +10,6 @@ export const effects = sqliteTable("effects", {
   type: text("type").notNull(), // "multiplier", "additive", "percentage", etc.
   category: text("category", { enum: ["passive", "active", "trigger"] }).notNull(),
   target: text("target"), // "score", "money", "symbols", etc.
-  defaultValue: real("default_value").notNull().default(1),
   unit: text("unit"), // "%", "x", "$", etc.
   icon: text("icon"),
   // Champs spécifiques selon le type

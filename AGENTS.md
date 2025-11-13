@@ -53,6 +53,6 @@
 - **Database**: SQLite with Drizzle ORM, 23 tables, types auto-generated from schema
 - **Legacy config cache**: Still uses global tables for performance (levelConfigs, shopRarityConfigs)
 - **No test framework**: Structure ready for Vitest, no tests currently implemented
-- **Effects system**: Hard-coded library (read-only), referenced by bonuses/jokers/characters
+- **Effects system**: Library of effect behaviors (read-only), values defined per usage in bonuses/jokers/characters
 - **File-based routing**: Remix 2 with loaders/actions pattern
 - **Docker support**: Multi-stage build, persistent SQLite volume, reverse proxy ready

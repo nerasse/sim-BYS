@@ -92,7 +92,6 @@ export default function Effects() {
               <th className="text-left p-4 font-semibold">Type</th>
               <th className="text-left p-4 font-semibold">Catégorie</th>
               <th className="text-left p-4 font-semibold">Cible</th>
-              <th className="text-left p-4 font-semibold">Valeur défaut</th>
             </tr>
           </thead>
           <tbody>
@@ -120,11 +119,6 @@ export default function Effects() {
                 </td>
                 <td className="p-4">
                   <span className="text-sm">{effect.target || "-"}</span>
-                </td>
-                <td className="p-4">
-                  <span className="text-sm font-mono font-semibold">
-                    {effect.defaultValue}{effect.unit || ""}
-                  </span>
                 </td>
               </tr>
             ))}

@@ -5,6 +5,10 @@ import { nanoid } from "nanoid";
 export async function seedEffects() {
   const db = await getDb();
 
+  // Note: Les defaultValue ont été retirés du schéma de la BDD.
+  // Les valeurs spécifiques des effets sont maintenant définies directement dans les bonus/jokers/personnages
+  // via la structure: Array<{ type: string; value: number; target?: string }>
+
   const defaultEffects = [
     {
       id: nanoid(),
@@ -14,7 +18,6 @@ export async function seedEffects() {
       type: "multiplier",
       category: "passive" as const,
       target: "score",
-      defaultValue: 1.5,
       unit: "x",
       icon: "⚡",
     },
@@ -26,7 +29,6 @@ export async function seedEffects() {
       type: "additive",
       category: "passive" as const,
       target: "money",
-      defaultValue: 10,
       unit: "$",
       icon: "💰",
     },
@@ -38,7 +40,6 @@ export async function seedEffects() {
       type: "percentage",
       category: "passive" as const,
       target: "symbols",
-      defaultValue: 0.2,
       unit: "%",
       icon: "📈",
     },
@@ -50,7 +51,6 @@ export async function seedEffects() {
       type: "percentage",
       category: "passive" as const,
       target: "shop",
-      defaultValue: 0.5,
       unit: "%",
       icon: "🔄",
     },
@@ -62,7 +62,6 @@ export async function seedEffects() {
       type: "multiplier",
       category: "passive" as const,
       target: "combo",
-      defaultValue: 1.3,
       unit: "x",
       icon: "🎯",
     },
@@ -74,7 +73,6 @@ export async function seedEffects() {
       type: "action",
       category: "active" as const,
       target: "spin",
-      defaultValue: 1,
       unit: "",
       icon: "🎰",
     },
@@ -86,7 +84,6 @@ export async function seedEffects() {
       type: "trigger",
       category: "trigger" as const,
       target: "boss",
-      defaultValue: 1,
       unit: "",
       icon: "👑",
     },
@@ -98,7 +95,6 @@ export async function seedEffects() {
       type: "percentage",
       category: "passive" as const,
       target: "reward",
-      defaultValue: 0.25,
       unit: "%",
       icon: "🎁",
     },
@@ -110,7 +106,6 @@ export async function seedEffects() {
       type: "percentage",
       category: "passive" as const,
       target: "chance",
-      defaultValue: 1,
       unit: "%",
       icon: "🍀",
     },
@@ -122,7 +117,6 @@ export async function seedEffects() {
       type: "additive",
       category: "passive" as const,
       target: "money",
-      defaultValue: 10,
       unit: "$",
       icon: "💵",
     },
@@ -134,7 +128,6 @@ export async function seedEffects() {
       type: "additive",
       category: "passive" as const,
       target: "lives",
-      defaultValue: 1,
       unit: "",
       icon: "❤️",
     },

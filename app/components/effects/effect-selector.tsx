@@ -9,7 +9,6 @@ interface Effect {
   name: string;
   displayName: string;
   type: string;
-  defaultValue: number;
   unit: string | null;
   icon: string | null;
   target: string | null;
@@ -45,10 +44,27 @@ export function EffectSelector({
         ...selectedEffects,
         {
           type: firstEffect.name,
-          value: firstEffect.defaultValue,
+          value: getDefaultValueForType(firstEffect.type),
           target: firstEffect.target || undefined,
         },
       ]);
+    }
+  };
+
+  // Helper function to get default value based on effect type
+  const getDefaultValueForType = (type: string): number => {
+    switch (type) {
+      case "multiplier":
+        return 1.0; // Neutral multiplier
+      case "percentage":
+        return 0.1; // 10%
+      case "additive":
+        return 10; // +10
+      case "action":
+      case "trigger":
+        return 1; // Count-based effects
+      default:
+        return 1; // Default fallback
     }
   };
 
@@ -77,7 +93,7 @@ export function EffectSelector({
                   const newEffect = availableEffects.find((ef) => ef.name === e.target.value);
                   if (newEffect) {
                     updateEffect(index, "type", newEffect.name);
-                    updateEffect(index, "value", newEffect.defaultValue);
+                    updateEffect(index, "value", getDefaultValueForType(newEffect.type));
                     if (newEffect.target) {
                       updateEffect(index, "target", newEffect.target);
                     }

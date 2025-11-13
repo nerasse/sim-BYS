@@ -24,12 +24,12 @@ L'application utilise une architecture **centrée sur les presets**. Chaque pres
   type: string                 // multiplier, additive, percentage
   category: "passive" | "active" | "trigger"
   target: string              // score, money, symbols, etc.
-  defaultValue: number
   unit: string                // %, x, $
   icon: string                // Emoji
+  config: json                // Configuration spécifique (condition, maxValue, etc.)
 }
 ```
-**Usage** : Bibliothèque d'effets réutilisables. Référencés dans bonus/jokers/personnages.
+**Usage** : Bibliothèque d'effets réutilisables. Référencés dans bonus/jokers/personnages avec leurs propres valeurs.
 
 #### `symbols` (9 symboles)
 ```typescript
@@ -384,7 +384,7 @@ db/queries/
 ## Seeds
 
 Données initiales dans `db/seed/`:
-- `effects.seed.ts` - 8 effets de base
+- `effects.seed.ts` - 11 effets de base
 - `symbols.seed.ts` - 9 symboles
 - `combos.seed.ts` - 11 combinaisons
 - `bonuses.seed.ts` - 16 bonus

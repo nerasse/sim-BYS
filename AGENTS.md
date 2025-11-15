@@ -19,7 +19,7 @@
 - Update only affected sections in appropriate `docs/*.md` files
 - Keep minimal format: every word counts, no duplication, no information loss
 - Follow current concise style with maximum density
-- **Also update this CLAUDE.md file** when adding new commands, patterns, or architectural changes
+- **Also update this AGENTS.md file** when adding new commands, patterns, or architectural changes
 
 ### 3. ENFORCEMENT
 - Documentation reading is NOT optional

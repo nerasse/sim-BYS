@@ -9,6 +9,7 @@ import { Badge } from "~/components/ui/badge";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Target } from "lucide-react";
+import { PatternGrid, type Position } from "~/components/ui/pattern-grid";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const activePresetId = await requireActivePreset();
@@ -77,6 +78,17 @@ export default function ConfigCombos() {
                       defaultValue={config.multiplier}
                       className="mt-1"
                     />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Pattern</label>
+                    <div className="flex justify-center">
+                      <PatternGrid
+                        value={combo.pattern as Position[]}
+                        readonly={true}
+                        compact={true}
+                      />
+                    </div>
                   </div>
                   
                   <div className="flex items-center gap-2">

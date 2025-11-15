@@ -79,8 +79,47 @@ export async function updateConnection(
   return connection;
 }
 
+export async function reorderConnections(reorderedIds: string[]) {
+  const db = await getDb();
+  
+  // Mettre à jour l'ordre de détection pour chaque connexion
+  for (let i = 0; i < reorderedIds.length; i++) {
+    await db
+      .update(connections)
+      .set({ detectionOrder: i + 1 })
+      .where(eq(connections.id, reorderedIds[i]));
+  }
+}
+
+export async function normalizeConnectionOrders() {
+  const db = await getDb();
+  const allConnections = await db.select().from(connections).orderBy(connections.detectionOrder);
+  
+  // Réorganiser les ordres pour qu'ils soient séquentiels (1, 2, 3, ...)
+  for (let i = 0; i < allConnections.length; i++) {
+    const expectedOrder = i + 1;
+    if (allConnections[i].detectionOrder !== expectedOrder) {
+      await db
+        .update(connections)
+        .set({ detectionOrder: expectedOrder })
+        .where(eq(connections.id, allConnections[i].id));
+    }
+  }
+  
+  return allConnections.length;
+}
+
 export async function deleteConnection(id: string) {
   const db = await getDb();
+  
+  // D'abord supprimer toutes les configurations de combo qui référencent cette connexion
+  const { deletePresetComboConfigsByComboId } = await import('./preset-combo-configs');
+  await deletePresetComboConfigsByComboId(id);
+  
+  // Ensuite supprimer la connexion
   await db.delete(connections).where(eq(connections.id, id));
+  
+  // Normaliser les ordres après suppression
+  await normalizeConnectionOrders();
 }
 

@@ -4,13 +4,13 @@ import {
   createAvailabilityGrid,
   arePositionsAvailable,
   markPositionsAsUsed,
-  isValidPosition,
 } from "./deduplication";
 import { GRID_ROWS, GRID_COLS } from "~/lib/utils/constants";
 
 /**
  * Detect all connections in a grid
  * Uses deduplication algorithm: once symbols are used in a connection, they can't be reused
+ * Now uses patterns stored in database instead of hard-coded generation
  */
 export function detectConnections(
   grid: Grid5x3,
@@ -116,8 +116,8 @@ function detectConnectionPattern(
 ): DetectedCombo[] {
   const matches: DetectedCombo[] = [];
 
-  // Get all possible pattern instances for this connection type
-  const patterns = generatePatternsForConnection(connection);
+  // Get pattern from connection config (stored as Position[][])
+  const patterns = getPatternsFromConnection(connection);
 
   for (const pattern of patterns) {
     // Check if this pattern matches
@@ -148,6 +148,40 @@ function detectConnectionPattern(
 }
 
 /**
+ * Get patterns from connection configuration
+ * Handles both new format (Position[][]) and legacy format for backward compatibility
+ */
+function getPatternsFromConnection(connection: Connection): Position[][] {
+  const patterns: Position[][] = [];
+
+  // New format: pattern is already a Position[][]
+  if (connection.pattern && Array.isArray(connection.pattern)) {
+    // Check if it's the new format (array of Position arrays)
+    if (connection.pattern.length > 0 && Array.isArray(connection.pattern[0])) {
+      // New format: use as-is
+      return connection.pattern as Position[][];
+    }
+    // Legacy format: single pattern array
+    else if (connection.pattern.length > 0) {
+      patterns.push(connection.pattern as Position[]);
+    }
+  }
+
+  // Special handling for JACKPOT (full grid)
+  if (connection.id === "JACKPOT") {
+    const fullGridPattern: Position[] = [];
+    for (let row = 0; row < GRID_ROWS; row++) {
+      for (let col = 0; col < GRID_COLS; col++) {
+        fullGridPattern.push([row, col]);
+      }
+    }
+    patterns.push(fullGridPattern);
+  }
+
+  return patterns;
+}
+
+/**
  * Check if a pattern matches in grid
  */
 function checkPattern(
@@ -155,6 +189,13 @@ function checkPattern(
   positions: Position[],
   availability: boolean[][]
 ): { symbolId: string; positions: Position[] } | null {
+  // Check if all positions are valid
+  for (const [row, col] of positions) {
+    if (row < 0 || row >= GRID_ROWS || col < 0 || col >= GRID_COLS) {
+      return null;
+    }
+  }
+
   // Check if all positions are available
   if (!arePositionsAvailable(availability, positions)) {
     return null;
@@ -185,170 +226,6 @@ function checkPattern(
   }
 
   return { symbolId, positions };
-}
-
-/**
- * Generate all possible pattern instances for a connection type
- */
-function generatePatternsForConnection(connection: Connection): Position[][] {
-  const patterns: Position[][] = [];
-
-  // Handle specific connection types
-  switch (connection.id) {
-    case "H3":
-      // Horizontal 3: sliding window across each row
-      for (let row = 0; row < GRID_ROWS; row++) {
-        for (let col = 0; col <= GRID_COLS - 3; col++) {
-          patterns.push([
-            [row, col],
-            [row, col + 1],
-            [row, col + 2],
-          ]);
-        }
-      }
-      break;
-
-    case "H4":
-      // Horizontal 4
-      for (let row = 0; row < GRID_ROWS; row++) {
-        for (let col = 0; col <= GRID_COLS - 4; col++) {
-          patterns.push([
-            [row, col],
-            [row, col + 1],
-            [row, col + 2],
-            [row, col + 3],
-          ]);
-        }
-      }
-      break;
-
-    case "H5":
-      // Horizontal 5 (full row)
-      for (let row = 0; row < GRID_ROWS; row++) {
-        patterns.push([
-          [row, 0],
-          [row, 1],
-          [row, 2],
-          [row, 3],
-          [row, 4],
-        ]);
-      }
-      break;
-
-    case "V3":
-      // Vertical 3 (full column since we only have 3 rows)
-      for (let col = 0; col < GRID_COLS; col++) {
-        patterns.push([
-          [0, col],
-          [1, col],
-          [2, col],
-        ]);
-      }
-      break;
-
-    case "V":
-    case "V_BIS":
-      // Full vertical (same as V3 in 3x5 grid)
-      for (let col = 0; col < GRID_COLS; col++) {
-        patterns.push([
-          [0, col],
-          [1, col],
-          [2, col],
-        ]);
-      }
-      break;
-
-    case "D3":
-      // Diagonal 3
-      // Top-left to bottom-right
-      patterns.push([
-        [0, 0],
-        [1, 1],
-        [2, 2],
-      ]);
-      patterns.push([
-        [0, 1],
-        [1, 2],
-        [2, 3],
-      ]);
-      patterns.push([
-        [0, 2],
-        [1, 3],
-        [2, 4],
-      ]);
-      // Top-right to bottom-left
-      patterns.push([
-        [0, 4],
-        [1, 3],
-        [2, 2],
-      ]);
-      patterns.push([
-        [0, 3],
-        [1, 2],
-        [2, 1],
-      ]);
-      patterns.push([
-        [0, 2],
-        [1, 1],
-        [2, 0],
-      ]);
-      break;
-
-    case "TRI":
-      // Triangle patterns (L-shape)
-      for (let row = 0; row <= GRID_ROWS - 2; row++) {
-        for (let col = 0; col <= GRID_COLS - 2; col++) {
-          // Bottom-left triangle
-          patterns.push([
-            [row, col],
-            [row + 1, col],
-            [row + 1, col + 1],
-          ]);
-          // Bottom-right triangle
-          patterns.push([
-            [row, col + 1],
-            [row + 1, col],
-            [row + 1, col + 1],
-          ]);
-          // Top-left triangle
-          patterns.push([
-            [row, col],
-            [row, col + 1],
-            [row + 1, col],
-          ]);
-          // Top-right triangle
-          patterns.push([
-            [row, col],
-            [row, col + 1],
-            [row + 1, col + 1],
-          ]);
-        }
-      }
-      break;
-
-    case "OEIL":
-      // Eye/Cross pattern (center + 4 adjacents)
-      for (let row = 1; row < GRID_ROWS - 1; row++) {
-        for (let col = 1; col < GRID_COLS - 1; col++) {
-          patterns.push([
-            [row, col], // Center
-            [row - 1, col], // Top
-            [row + 1, col], // Bottom
-            [row, col - 1], // Left
-            [row, col + 1], // Right
-          ]);
-        }
-      }
-      break;
-
-    default:
-      // Use pattern from config if available
-      if (connection.pattern && connection.pattern.length > 0) {
-        patterns.push(connection.pattern as Position[]);
-      }
-  }
-
-  return patterns;
 }
 
 /**

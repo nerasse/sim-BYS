@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs, MetaFunction, ActionFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData, useFetcher } from "@remix-run/react";
-import { getAllConnections, createConnection, updateConnection, deleteConnection } from "~/db/queries/connections";
+import { getAllConnections, createConnection, updateConnection, deleteConnection, reorderConnections } from "~/db/queries/connections";
 import { PageHeader } from "~/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
@@ -9,8 +9,17 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Checkbox } from "~/components/ui/checkbox";
-import { Plus, Edit2, Trash2, Save, X } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
+import { Plus, Edit2, Trash2, Save, X, Grid3x3, ArrowUp, ArrowDown } from "lucide-react";
 import { useState } from "react";
+import { PatternGrid, CONNECTION_PRESETS, type Position, type ConnectionPresetKey } from "~/components/ui/pattern-grid";
+
+/**
+ * PAS DE CONVERSION - on utilise directement le format Position[]
+ */
+function normalizePattern(pattern: Position[] | null | undefined): Position[] {
+  return pattern || [];
+}
 
 export const meta: MetaFunction = () => {
   return [
@@ -30,7 +39,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (intent === "create") {
     const patternJSON = formData.get("pattern") as string;
-    let pattern = [];
+    let pattern: Position[] = [];
     try {
       pattern = JSON.parse(patternJSON || '[]');
     } catch (e) {
@@ -41,7 +50,7 @@ export async function action({ request }: ActionFunctionArgs) {
       name: formData.get("name") as string,
       displayName: formData.get("displayName") as string,
       description: formData.get("description") as string || undefined,
-      pattern,
+      pattern, // Stocké comme Position[]
       baseMultiplier: parseFloat(formData.get("baseMultiplier") as string),
       isActive: formData.get("isActive") === "true",
     });
@@ -50,7 +59,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (intent === "update") {
     const patternJSON = formData.get("pattern") as string;
-    let pattern = undefined;
+    let pattern: Position[] | undefined = undefined;
     try {
       pattern = JSON.parse(patternJSON || '[]');
     } catch (e) {
@@ -61,7 +70,7 @@ export async function action({ request }: ActionFunctionArgs) {
       name: formData.get("name") as string,
       displayName: formData.get("displayName") as string,
       description: formData.get("description") as string || undefined,
-      pattern,
+      pattern, // Stocké comme Position[]
       baseMultiplier: parseFloat(formData.get("baseMultiplier") as string),
       isActive: formData.get("isActive") === "true",
     });
@@ -70,6 +79,13 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (intent === "delete") {
     await deleteConnection(formData.get("id") as string);
+    return json({ success: true });
+  }
+
+  if (intent === "reorder") {
+    const reorderedIds = formData.get("reorderedIds") as string;
+    const idsArray = JSON.parse(reorderedIds);
+    await reorderConnections(idsArray);
     return json({ success: true });
   }
 
@@ -102,7 +118,7 @@ export default function ResourcesCombinations() {
       )}
 
       <div className="border rounded-lg divide-y">
-        {connections.map((connection) => (
+        {connections.map((connection, index) => (
           <div key={connection.id}>
             {editingId === connection.id ? (
               <ComboForm
@@ -114,6 +130,8 @@ export default function ResourcesCombinations() {
               <ComboListItem
                 combo={connection}
                 onEdit={() => setEditingId(connection.id)}
+                index={index}
+                total={connections.length}
               />
             )}
           </div>
@@ -123,13 +141,50 @@ export default function ResourcesCombinations() {
   );
 }
 
-function ComboListItem({ combo, onEdit }: { combo: any; onEdit: () => void }) {
+function ComboListItem({ combo, onEdit, index, total }: { 
+  combo: {
+    id: string;
+    displayName: string;
+    description?: string;
+    baseMultiplier: number;
+    isActive: boolean;
+    pattern: Position[] | null | undefined;
+  }; 
+  onEdit: () => void;
+  index: number;
+  total: number;
+}) {
   const fetcher = useFetcher();
+  const { connections } = useLoaderData<typeof loader>();
 
   const handleDelete = () => {
     if (confirm(`Supprimer la connexion "${combo.displayName}" ?`)) {
       fetcher.submit(
         { intent: "delete", id: combo.id },
+        { method: "post" }
+      );
+    }
+  };
+
+  const handleMoveUp = () => {
+    if (index > 0) {
+      const newOrder = [...connections];
+      [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
+      const reorderedIds = newOrder.map(c => c.id);
+      fetcher.submit(
+        { intent: "reorder", reorderedIds: JSON.stringify(reorderedIds) },
+        { method: "post" }
+      );
+    }
+  };
+
+  const handleMoveDown = () => {
+    if (index < total - 1) {
+      const newOrder = [...connections];
+      [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
+      const reorderedIds = newOrder.map(c => c.id);
+      fetcher.submit(
+        { intent: "reorder", reorderedIds: JSON.stringify(reorderedIds) },
         { method: "post" }
       );
     }
@@ -150,6 +205,10 @@ function ComboListItem({ combo, onEdit }: { combo: any; onEdit: () => void }) {
           )}
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Ordre:</span>
+              <span className="font-medium">{index + 1}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">Multiplicateur:</span>
               <span className="font-medium">×{combo.baseMultiplier}</span>
             </div>
@@ -160,40 +219,50 @@ function ComboListItem({ combo, onEdit }: { combo: any; onEdit: () => void }) {
           </div>
           {/* Pattern Preview */}
           {combo.pattern && combo.pattern.length > 0 && (
-            <div className="mt-3 p-3 bg-muted/50 rounded-md inline-block">
-              <div className="space-y-1">
-                {combo.pattern.map((row: any, i: number) => (
-                  <div key={i} className="flex gap-1">
-                    {row.map((cell: any, j: number) => (
-                      <div
-                        key={j}
-                        className={`w-6 h-6 rounded border text-xs flex items-center justify-center font-mono ${
-                          cell ? "bg-primary text-primary-foreground" : "bg-background"
-                        }`}
-                        title={cell || "vide"}
-                      >
-                        {cell ? "■" : "□"}
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
+            <div className="mt-3">
+              <PatternGrid
+                value={normalizePattern(combo.pattern)}
+                readonly={true}
+                compact={true}
+              />
             </div>
           )}
         </div>
-        <div className="flex gap-2 shrink-0">
-          <Button size="sm" variant="outline" onClick={onEdit}>
-            <Edit2 className="w-3 h-3 mr-1" />
-            Modifier
-          </Button>
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={handleDelete}
-            disabled={fetcher.state !== "idle"}
-          >
-            <Trash2 className="w-3 h-3" />
-          </Button>
+        <div className="flex flex-col gap-2 shrink-0">
+          <div className="flex gap-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleMoveUp}
+              disabled={index === 0 || fetcher.state !== "idle"}
+              title="Monter"
+            >
+              <ArrowUp className="w-3 h-3" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleMoveDown}
+              disabled={index === total - 1 || fetcher.state !== "idle"}
+              title="Descendre"
+            >
+              <ArrowDown className="w-3 h-3" />
+            </Button>
+          </div>
+          <div className="flex gap-1">
+            <Button size="sm" variant="outline" onClick={onEdit}>
+              <Edit2 className="w-3 h-3 mr-1" />
+              Modifier
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={fetcher.state !== "idle"}
+            >
+              <Trash2 className="w-3 h-3" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -205,17 +274,32 @@ function ComboForm({
   onCancel,
   intent,
 }: {
-  combo?: any;
+  combo?: {
+    id?: string;
+    name?: string;
+    displayName?: string;
+    description?: string;
+    baseMultiplier?: number;
+    isActive?: boolean;
+    pattern?: Position[] | null | undefined;
+  };
   onCancel: () => void;
   intent: "create" | "update";
 }) {
   const fetcher = useFetcher();
   const [isActive, setIsActive] = useState(combo?.isActive ?? true);
+  const [pattern, setPattern] = useState<Position[]>(
+    combo?.pattern ? normalizePattern(combo.pattern) : []
+  );
+  const [selectedPreset, setSelectedPreset] = useState<string>("");
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{intent === "create" ? "Nouvelle connexion" : "Modifier"}</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Grid3x3 className="w-5 h-5" />
+          {intent === "create" ? "Nouvelle connexion" : "Modifier"}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <fetcher.Form
@@ -226,15 +310,18 @@ function ComboForm({
           <input type="hidden" name="intent" value={intent} />
           {intent === "update" && <input type="hidden" name="id" value={combo?.id} />}
           <input type="hidden" name="isActive" value={String(isActive)} />
+          <input type="hidden" name="pattern" value={JSON.stringify(pattern)} />
 
-          <div className="space-y-2">
-            <Label>Nom technique</Label>
-            <Input name="name" defaultValue={combo?.name} required />
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Nom technique</Label>
+              <Input name="name" defaultValue={combo?.name} required />
+            </div>
 
-          <div className="space-y-2">
-            <Label>Nom d'affichage</Label>
-            <Input name="displayName" defaultValue={combo?.displayName} required />
+            <div className="space-y-2">
+              <Label>Nom d'affichage</Label>
+              <Input name="displayName" defaultValue={combo?.displayName} required />
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -242,17 +329,49 @@ function ComboForm({
             <Input name="description" defaultValue={combo?.description} />
           </div>
 
-          <div className="space-y-2">
-            <Label>Pattern (JSON array 2D)</Label>
-            <textarea
-              name="pattern"
-              defaultValue={combo ? JSON.stringify(combo.pattern, null, 2) : '[[1,1,1]]'}
-              className="w-full px-3 py-2 border rounded-md font-mono text-xs"
-              rows={4}
-              required
-            />
-            <p className="text-xs text-muted-foreground">
-              Ex: {`[[1,1,1]]`} pour 3 symboles identiques
+          {/* Pattern Grid Editor */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-medium">Pattern de la connexion</Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="preset" className="text-sm text-muted-foreground">
+                  Preset:
+                </Label>
+                <Select value={selectedPreset} onValueChange={(value) => {
+                  setSelectedPreset(value);
+                  if (value && value !== "custom") {
+                    const preset = CONNECTION_PRESETS[value as ConnectionPresetKey];
+                    if (preset) {
+                      setPattern([...preset.positions]);
+                    }
+                  }
+                }}>
+                  <SelectTrigger id="preset" className="w-40">
+                    <SelectValue placeholder="Choisir un preset" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="custom">Personnalisé</SelectItem>
+                    {Object.entries(CONNECTION_PRESETS).map(([key, preset]) => (
+                      <SelectItem key={key} value={key}>
+                        {preset.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="flex justify-center">
+              <PatternGrid
+                value={pattern}
+                onChange={setPattern}
+                readonly={false}
+                compact={false}
+              />
+            </div>
+            
+            <p className="text-xs text-muted-foreground text-center">
+              Cliquez sur les cases pour définir le pattern • {pattern.length} position{pattern.length > 1 ? 's' : ''} sélectionnée{pattern.length > 1 ? 's' : ''}
             </p>
           </div>
 

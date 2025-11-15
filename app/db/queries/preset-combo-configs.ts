@@ -106,6 +106,16 @@ export async function deletePresetComboConfigs(presetId: string) {
 }
 
 /**
+ * Supprime toutes les configs de combos pour une connexion spécifique
+ */
+export async function deletePresetComboConfigsByComboId(comboId: string) {
+  const db = await getDb();
+  return await db
+    .delete(presetComboConfigs)
+    .where(eq(presetComboConfigs.comboId, comboId));
+}
+
+/**
  * Initialise les configs de connexions pour un preset (copie des valeurs par défaut)
  */
 export async function initializePresetComboConfigs(presetId: string) {

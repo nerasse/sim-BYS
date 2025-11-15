@@ -70,12 +70,12 @@ L'application utilise une architecture **centrée sur les presets**. Chaque pres
   type: "starting" | "game"
   rarity: "common" | "uncommon" | "rare" | "epic" | "legendary"
   effects: json[]              // Array<{ type, value, scalingPerLevel, maxLevel, target? }>
-  isDestructible: boolean
+  isPassif: boolean
 }
 ```
 **Types** : 4 de départ + 12 de partie  
 **Usage** : Bibliothèque, disponibilité contrôlée par preset  
-**Note** : Chaque effet a ses propres value/scalingPerLevel/maxLevel. Condition d'obtention = effet trigger (obtain_starting, obtain_boss_or_levelup)
+**Note** : Chaque effet a ses propres value/scalingPerLevel/maxLevel. Condition d'obtention = effet trigger (obtain_starting, obtain_boss_or_levelup). Les bonus passifs ne sont pas détruits après utilisation.
 
 #### `jokers` (25+)
 ```typescript

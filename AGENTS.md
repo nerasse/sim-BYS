@@ -53,6 +53,12 @@ When working on ANY task:
 - `npm run db:reset` - Reset and reseed database
 - `npm run db:studio` - Drizzle Studio UI
 
+## Database Migrations
+
+- Renommage `isDestructible` → `isPassif` dans la table `bonuses`
+- Migration SQL : `ALTER TABLE bonuses RENAME COLUMN is_destructible TO is_passif;`
+- Mise à jour des types, queries et composants UI pour utiliser `isPassif`
+
 ## Code Style
 
 - **TypeScript**: Strict mode enabled, no `any` types
@@ -69,6 +75,7 @@ When working on ANY task:
 - **Database**: SQLite with Drizzle ORM, 23 tables, types auto-generated from schema
 - **Legacy config cache**: Still uses global tables for performance (levelConfigs, shopRarityConfigs)
 - **No test framework**: Structure ready for Vitest, no tests currently implemented
-- **Effects system**: Library of effect behaviors (read-only), values defined per usage in bonuses/jokers/characters
+- **Effects system**: Library of effect behaviors (read-only), values defined per usage in bonuses/jokers/characters. EffectSelector met à jour automatiquement les valeurs lors du changement d'effet
+- **Passif system**: Les bonus peuvent être marqués comme "Passif" (non destructibles après utilisation) avec étiquettes visuelles bleues dans l'UI
 - **File-based routing**: Remix 2 with loaders/actions pattern
 - **Docker support**: Multi-stage build, persistent SQLite volume, reverse proxy ready

@@ -81,7 +81,7 @@ export const bonuses = sqliteTable("bonuses", {
   effects: text("effects", { mode: "json" })
     .$type<Array<{ type: string; value: number; scalingPerLevel: number; maxLevel: number; target?: string }>>()
     .notNull(),
-  isDestructible: integer("is_destructible", { mode: "boolean" })
+  isPassif: integer("is_passif", { mode: "boolean" })
     .notNull()
     .default(false),
   createdAt: integer("created_at", { mode: "timestamp" })

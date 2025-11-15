@@ -97,11 +97,16 @@ export function EffectSelector({
                   onChange={(e) => {
                     const newEffect = availableEffects.find((ef) => ef.name === e.target.value);
                     if (newEffect) {
-                      updateEffect(index, "type", newEffect.name);
-                      updateEffect(index, "value", getDefaultValueForType(newEffect.type));
-                      if (newEffect.target) {
-                        updateEffect(index, "target", newEffect.target);
-                      }
+                      const updated = [...selectedEffects];
+                      updated[index] = {
+                        ...updated[index],
+                        type: newEffect.name,
+                        value: getDefaultValueForType(newEffect.type),
+                        scalingPerLevel: 0,
+                        maxLevel: 1,
+                        target: newEffect.target || undefined,
+                      };
+                      setSelectedEffects(updated);
                     }
                   }}
                   className="w-full h-9 px-3 py-2 border rounded-md"

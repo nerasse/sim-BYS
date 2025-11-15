@@ -278,7 +278,7 @@ function AddBonusForm({ availableBonuses, onCancel, onSuccess }: any) {
             <SelectContent>
               {availableBonuses.map((bonus: any) => (
                 <SelectItem key={bonus.id} value={bonus.id}>
-                  {bonus.name} ({bonus.rarity})
+                  {bonus.name} ({bonus.rarity}){bonus.isPassif && " - Passif"}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -358,6 +358,11 @@ function EditBonusForm({ bonus, availability, onCancel, onSuccess }: any) {
         <div className="flex items-center gap-2">
           <h4 className="font-semibold text-sm">{bonus.name}</h4>
           <Badge variant="outline">{bonus.rarity}</Badge>
+          {bonus.isPassif && (
+            <Badge variant="outline" className="text-blue-600 border-blue-600">
+              Passif
+            </Badge>
+          )}
         </div>
         <Button size="sm" variant="ghost" onClick={onCancel}>
           <X className="w-4 h-4" />
@@ -435,6 +440,11 @@ function BonusCard({ bonus, availability, onEdit }: any) {
           <div className="flex items-center gap-2 mb-1">
             <h4 className="font-medium text-sm">{bonus.name}</h4>
             <Badge variant="outline" className="text-xs">{bonus.rarity}</Badge>
+            {bonus.isPassif && (
+              <Badge variant="outline" className="text-xs text-blue-600 border-blue-600">
+                Passif
+              </Badge>
+            )}
           </div>
           <p className="text-xs text-muted-foreground mb-2">{bonus.description}</p>
           <div className="flex items-center gap-2 text-xs">

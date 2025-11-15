@@ -41,6 +41,7 @@ export async function action({ request }: ActionFunctionArgs) {
 /resources/characters      - Bibliothèque personnages (CRUD avec dropdown effets)
 /resources/levels          - Bibliothèque niveaux (CRUD)
 /resources/object-selections - Sous-presets objets (CRUD)
+/resources/object-selections/:id - Config objets par niveau (avec indication Passif)
 /simulator                 - Simulation avec preset actif
 /stats                     - Statistiques par preset
 /stats?preset=<id>         - Stats d'un preset spécifique
@@ -135,6 +136,20 @@ export async function action({ request }: ActionFunctionArgs) {
 - ⚠️ Warning : Modification nécessite adaptation code simulation
 
 **Usage** : Référencés par bonus, jokers, personnages (dropdown sélection)
+
+---
+
+### Bonus (`resources.bonuses.tsx`) **CRUD**
+
+**Loader** : `getAllBonuses()`, `getAllEffects()`  
+**Actions** : `create`, `update`, `delete`
+
+**Display** :
+- **Liste des bonus** avec badges : Nom, Rareté, Type, **Passif** (étiquette bleue si applicable)
+- **Formulaire d'édition** : Nom, Description, Type, Rareté, **Passif** (checkbox), Effets (sélecteur)
+- **EffetSelector** mis à jour : Changement d'effet met à jour automatiquement les valeurs par défaut
+
+**Note** : Les bonus passifs ne sont pas détruits après utilisation (contrairement aux bonus actifs)
 
 ---
 
@@ -243,6 +258,9 @@ const [
 
 ### Presets (`app/components/presets/`)
 - `preset-selector.tsx` - Dropdown switch preset (dans config layout)
+
+### Effects (`app/components/effects/`)
+- `effect-selector.tsx` - Sélecteur d'effets avec mise à jour automatique des valeurs lors du changement d'effet
 
 ## Navigation
 

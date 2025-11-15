@@ -48,7 +48,7 @@ export async function action({ request }: ActionFunctionArgs) {
       type: formData.get("type") as "starting" | "game",
       rarity: formData.get("rarity") as "common" | "uncommon" | "rare" | "epic" | "legendary",
       effects,
-      isDestructible: formData.get("isDestructible") === "true",
+      isPassif: formData.get("isPassif") === "true",
     };
 
     if (intent === "create") {
@@ -141,6 +141,11 @@ function BonusListItem({ bonus, onEdit }: { bonus: any; onEdit: () => void }) {
             <Badge variant={bonus.type === "starting" ? "default" : "secondary"}>
               {bonus.type}
             </Badge>
+            {bonus.isPassif && (
+              <Badge variant="outline" className="text-blue-600 border-blue-600">
+                Passif
+              </Badge>
+            )}
           </div>
           <p className="text-muted-foreground text-sm mb-3">{bonus.description}</p>
           <div className="flex gap-6 text-sm">
@@ -181,7 +186,7 @@ function BonusForm({
   intent: "create" | "update";
 }) {
   const fetcher = useFetcher();
-  const [isDestructible, setIsDestructible] = useState(bonus?.isDestructible ?? false);
+  const [isPassif, setIsPassif] = useState(bonus?.isPassif ?? false);
   const [selectedEffects, setSelectedEffects] = useState(bonus?.effects || []);
 
   return (
@@ -206,7 +211,7 @@ function BonusForm({
         >
           <input type="hidden" name="intent" value={intent} />
           {intent === "update" && <input type="hidden" name="id" value={bonus?.id} />}
-          <input type="hidden" name="isDestructible" value={String(isDestructible)} />
+          <input type="hidden" name="isPassif" value={String(isPassif)} />
 
           <div className="space-y-2">
             <Label>Nom</Label>
@@ -259,11 +264,11 @@ function BonusForm({
 
           <div className="flex items-center space-x-2">
             <Checkbox
-              id="isDestructible"
-              checked={isDestructible}
-              onCheckedChange={(checked) => setIsDestructible(checked as boolean)}
+              id="isPassif"
+              checked={isPassif}
+              onCheckedChange={(checked) => setIsPassif(checked as boolean)}
             />
-            <Label htmlFor="isDestructible">Destructible</Label>
+            <Label htmlFor="isPassif">Passif</Label>
           </div>
 
           <div className="flex gap-2">

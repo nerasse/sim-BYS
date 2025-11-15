@@ -47,7 +47,7 @@ export async function createBonus(data: {
   type: "starting" | "game";
   rarity: "common" | "uncommon" | "rare" | "epic" | "legendary";
   effects: Array<{ type: string; value: number; scalingPerLevel: number; maxLevel: number; target?: string }>;
-  isDestructible: boolean;
+  isPassif: boolean;
 }) {
   const db = await getDb();
   const [bonus] = await db
@@ -59,7 +59,7 @@ export async function createBonus(data: {
       type: data.type,
       rarity: data.rarity,
       effects: data.effects,
-      isDestructible: data.isDestructible,
+      isPassif: data.isPassif,
     })
     .returning();
   return bonus;
@@ -73,7 +73,7 @@ export async function updateBonus(
     type?: "starting" | "game";
     rarity?: "common" | "uncommon" | "rare" | "epic" | "legendary";
     effects?: Array<{ type: string; value: number; scalingPerLevel: number; maxLevel: number; target?: string }>;
-    isDestructible?: boolean;
+    isPassif?: boolean;
   }
 ) {
   const db = await getDb();
@@ -83,7 +83,7 @@ export async function updateBonus(
   if (data.type) updateData.type = data.type;
   if (data.rarity) updateData.rarity = data.rarity;
   if (data.effects) updateData.effects = data.effects;
-  if (data.isDestructible !== undefined) updateData.isDestructible = data.isDestructible;
+  if (data.isPassif !== undefined) updateData.isPassif = data.isPassif;
   
   const [bonus] = await db
     .update(bonuses)

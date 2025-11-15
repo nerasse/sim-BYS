@@ -39,7 +39,7 @@ export const bonusesData: NewBonus[] = [
       { type: "extra_life", value: 1, scalingPerLevel: 0, maxLevel: 1 },
       { type: "obtain_starting", value: 1, scalingPerLevel: 0, maxLevel: 1 },
     ],
-    isDestructible: true,
+    isPassif: true,
   },
   {
     id: "starting_level_boost",
@@ -51,7 +51,7 @@ export const bonusesData: NewBonus[] = [
       { type: "instant_levelup", value: 3, scalingPerLevel: 0, maxLevel: 1 },
       { type: "obtain_starting", value: 1, scalingPerLevel: 0, maxLevel: 1 },
     ],
-    isDestructible: true,
+    isPassif: true,
   },
 
   // ========== BONUS DE PARTIE ==========
@@ -90,7 +90,7 @@ export const bonusesData: NewBonus[] = [
       { type: "transform_to_bonuses", value: 2, scalingPerLevel: 0, maxLevel: 1 },
       { type: "obtain_boss_or_levelup", value: 1, scalingPerLevel: 0, maxLevel: 1 },
     ],
-    isDestructible: true,
+    isPassif: true,
   },
   {
     id: "chance_boost",
@@ -160,7 +160,7 @@ export const bonusesData: NewBonus[] = [
       { type: "grant_random_joker", value: 1, scalingPerLevel: 0, maxLevel: 1 },
       { type: "obtain_boss_or_levelup", value: 1, scalingPerLevel: 0, maxLevel: 1 },
     ],
-    isDestructible: true,
+    isPassif: true,
   },
   {
     id: "multiplier_boost",

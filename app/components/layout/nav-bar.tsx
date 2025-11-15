@@ -13,7 +13,7 @@ import { Button } from "~/components/ui/button";
 import type { Preset } from "~/db/schema";
 
 const resourceItems = [
-  { href: "/resources/combinations", label: "Combinaisons" },
+  { href: "/resources/connections", label: "Connexions" },
   { href: "/resources/bonuses", label: "Bonus" },
   { href: "/resources/jokers", label: "Jokers" },
   { href: "/resources/characters", label: "Personnages" },

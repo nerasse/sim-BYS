@@ -10,7 +10,7 @@ Le simulateur charge les configs depuis le **preset actif** et les passe au mote
 ```typescript
 // Dans simulator.tsx (loader)
 const symbolConfigs = await getPresetSymbolConfigs(activePresetId);
-const comboConfigs = await getPresetComboConfigs(activePresetId);
+const connectionConfigs = await getPresetComboConfigs(activePresetId);
 
 // Transformation pour le moteur
 const symbolWeights = {};
@@ -23,7 +23,7 @@ const result = runAutoSimulation({
   character,
   startingBonus,
   symbolWeights,        // ← depuis preset
-  comboMultipliers,     // ← depuis preset
+  connectionMultipliers, // ← depuis preset
   ascension,
   // ...
 });
@@ -34,8 +34,8 @@ const result = runAutoSimulation({
 ```typescript
 SimulationConfig {
   character, startingBonus, ascension
-  symbolWeights: Record<string, number>    // ← preset
-  comboMultipliers: Record<string, number> // ← preset
+  symbolWeights: Record<string, number>       // ← preset
+  connectionMultipliers: Record<string, number> // ← preset
   startLevel, endLevel, startingDollars
   iterations, mode
 }
@@ -47,7 +47,7 @@ GameState {
 }
 
 SpinResult {
-  grid, combosDetected, tokensGained
+  grid, connectionsDetected, tokensGained
   newState
 }
 
@@ -73,7 +73,7 @@ Marque symboles utilisés = `null`.
 Détecte combos selon `detectionOrder`.
 
 ```typescript
-detectCombos(grid, combinations, symbolData) → DetectedCombo[]
+detectConnections(grid, connections, symbolData) → DetectedConnection[]
 ```
 
 **Types** : H3, H4, H5, V3, V, V_BIS, D3, TRI, OEIL, JACKPOT, MULTI
@@ -82,7 +82,7 @@ detectCombos(grid, combinations, symbolData) → DetectedCombo[]
 Calcul gains finaux.
 
 ```typescript
-calculateGains(combos, state) → number
+calculateGains(connections, state) → number
 ```
 
 ## Modules Game Logic

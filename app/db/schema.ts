@@ -51,8 +51,8 @@ export const symbols = sqliteTable("symbols", {
     .default(sql`(unixepoch())`),
 });
 
-// Combinaisons (11 types)
-export const combinations = sqliteTable("combinations", {
+// Connexions (11 types)
+export const connections = sqliteTable("connections", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   displayName: text("display_name").notNull(),
@@ -256,14 +256,14 @@ export const presetSymbolConfigs = sqliteTable("preset_symbol_configs", {
     .default(sql`(unixepoch())`),
 });
 
-// Configuration des combos par preset
+// Configuration des connexions par preset
 export const presetComboConfigs = sqliteTable("preset_combo_configs", {
   id: text("id").primaryKey(),
   presetId: text("preset_id")
     .references(() => presets.id, { onDelete: "cascade" })
     .notNull(),
   comboId: text("combo_id")
-    .references(() => combinations.id)
+    .references(() => connections.id)
     .notNull(),
   multiplier: real("multiplier").notNull(),
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
@@ -454,7 +454,7 @@ export const globalStats = sqliteTable("global_stats", {
   symbolFrequencies: text("symbol_frequencies", { mode: "json" })
     .$type<Record<string, number>>()
     .notNull(),
-  comboFrequencies: text("combo_frequencies", { mode: "json" })
+  connectionFrequencies: text("connection_frequencies", { mode: "json" })
     .$type<Record<string, number>>()
     .notNull(),
   topCharacter: text("top_character"),
@@ -475,8 +475,8 @@ export type NewEffectTarget = typeof effectTargets.$inferInsert;
 export type Symbol = typeof symbols.$inferSelect;
 export type NewSymbol = typeof symbols.$inferInsert;
 
-export type Combination = typeof combinations.$inferSelect;
-export type NewCombination = typeof combinations.$inferInsert;
+export type Connection = typeof connections.$inferSelect;
+export type NewConnection = typeof connections.$inferInsert;
 
 export type Bonus = typeof bonuses.$inferSelect;
 export type NewBonus = typeof bonuses.$inferInsert;

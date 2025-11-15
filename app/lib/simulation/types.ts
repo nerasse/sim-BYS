@@ -1,4 +1,8 @@
-import type { Symbol, Combination, Bonus, Joker, Character } from "~/db/schema";
+import type { Symbol, Connection, Bonus, Joker, Character } from "~/db/schema";
+
+// ========== IMPORTS FROM SCHEMA ==========
+
+import type { Symbol, Connection, Character, Joker, Bonus } from "~/db/schema";
 
 // ========== GRID & POSITIONS ==========
 
@@ -55,7 +59,7 @@ export interface GameState {
   symbolWeights: Record<string, number>;
   symbolValues: Record<string, number>;
   symbolMultipliers: Record<string, number>;
-  comboMultipliers: Record<string, number>;
+  connectionMultipliers: Record<string, number>;
 
   // Temporary/session modifiers
   extraSpinsThisLevel: number;
@@ -95,7 +99,7 @@ export interface SimulationConfig {
 
   // Game configuration
   symbolsConfig: Symbol[];
-  combosConfig: Combination[];
+  connectionsConfig: Connection[];
 
   // Object availability
   availableBonuses: Array<{
@@ -214,8 +218,8 @@ export interface SimulationStep {
 export interface SimulationStats {
   totalSpins: number;
   winningSpins: number;
-  totalCombos: number;
-  comboFrequency: Record<string, number>;
+  totalConnections: number;
+  connectionFrequency: Record<string, number>;
   symbolFrequency: Record<string, number>;
   averageTokensPerSpin: number;
   maxTokensInSingleSpin: number;

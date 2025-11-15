@@ -43,10 +43,10 @@ export default function ConfigCombos() {
         title={
           <div className="flex items-center gap-3">
             <Target className="w-8 h-8" />
-            Combinaisons
+            Connexions
           </div>
         }
-        description="Configuration des combinaisons du preset actif - Modifiez multiplicateurs et activez/désactivez"
+        description="Configuration des connexions du preset actif - Modifiez multiplicateurs et activez/désactivez"
       />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -87,7 +87,7 @@ export default function ConfigCombos() {
                       defaultChecked={config.isActive}
                       className="w-4 h-4"
                     />
-                    <label className="text-sm font-medium">Combinaison active</label>
+                    <label className="text-sm font-medium">Connexion active</label>
                   </div>
                   
                   <Button type="submit" className="w-full" size="sm">

@@ -1,6 +1,6 @@
-import type { NewCombination } from "../schema";
+import type { NewConnection } from "../schema";
 
-export const combosData: NewCombination[] = [
+export const combosData: NewConnection[] = [
   {
     id: "H3",
     name: "H3",

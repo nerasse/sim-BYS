@@ -1,5 +1,5 @@
 import type { Grid5x3, DetectedCombo, Position } from "../types";
-import type { Combination } from "~/db/schema";
+import type { Connection } from "~/db/schema";
 import {
   createAvailabilityGrid,
   arePositionsAvailable,
@@ -9,46 +9,46 @@ import {
 import { GRID_ROWS, GRID_COLS } from "~/lib/utils/constants";
 
 /**
- * Detect all combos in a grid
- * Uses deduplication algorithm: once symbols are used in a combo, they can't be reused
+ * Detect all connections in a grid
+ * Uses deduplication algorithm: once symbols are used in a connection, they can't be reused
  */
-export function detectCombos(
+export function detectConnections(
   grid: Grid5x3,
-  combosConfig: Combination[],
+  connectionsConfig: Connection[],
   symbolValues: Record<string, number>,
-  comboMultipliers: Record<string, number>
+  connectionMultipliers: Record<string, number>
 ): DetectedCombo[] {
-  const detectedCombos: DetectedCombo[] = [];
+  const detectedConnections: DetectedCombo[] = [];
 
   // Check for jackpot first (special case)
-  const jackpot = detectJackpot(grid, combosConfig, symbolValues, comboMultipliers);
+  const jackpot = detectJackpot(grid, connectionsConfig, symbolValues, connectionMultipliers);
   if (jackpot.length > 0) {
-    // Jackpot includes ALL combos + bonus
+    // Jackpot includes ALL connections + bonus
     return jackpot;
   }
 
   // Create availability grid
   const availability = createAvailabilityGrid();
 
-  // Sort combos by detection order
-  const sortedCombos = [...combosConfig]
+  // Sort connections by detection order
+  const sortedConnections = [...connectionsConfig]
     .filter((c) => c.isActive)
     .sort((a, b) => a.detectionOrder - b.detectionOrder);
 
-  // Detect each combo type in order
-  for (const combo of sortedCombos) {
-    const matches = detectComboPattern(
+  // Detect each connection type in order
+  for (const connection of sortedConnections) {
+    const matches = detectConnectionPattern(
       grid,
-      combo,
+      connection,
       availability,
       symbolValues,
-      comboMultipliers
+      connectionMultipliers
     );
 
-    detectedCombos.push(...matches);
+    detectedConnections.push(...matches);
   }
 
-  return detectedCombos;
+  return detectedConnections;
 }
 
 /**
@@ -56,14 +56,14 @@ export function detectCombos(
  */
 function detectJackpot(
   grid: Grid5x3,
-  combosConfig: Combination[],
+  connectionsConfig: Connection[],
   symbolValues: Record<string, number>,
-  comboMultipliers: Record<string, number>
+  connectionMultipliers: Record<string, number>
 ): DetectedCombo[] {
   // Get first symbol
   const firstSymbol = grid[0][0];
 
-  // Check if all cells are the same
+  // Check if all cells are same
   for (let row = 0; row < GRID_ROWS; row++) {
     for (let col = 0; col < GRID_COLS; col++) {
       if (grid[row][col] !== firstSymbol) {
@@ -72,13 +72,13 @@ function detectJackpot(
     }
   }
 
-  // It's a jackpot! Return all combos + jackpot bonus
-  const allCombos: DetectedCombo[] = [];
+  // It's a jackpot! Return all connections + jackpot bonus
+  const allConnections: DetectedCombo[] = [];
 
-  // Find jackpot combo config
-  const jackpotCombo = combosConfig.find((c) => c.id === "JACKPOT");
+  // Find jackpot connection config
+  const jackpotConnection = connectionsConfig.find((c) => c.id === "JACKPOT");
 
-  if (jackpotCombo) {
+  if (jackpotConnection) {
     const positions: Position[] = [];
     for (let row = 0; row < GRID_ROWS; row++) {
       for (let col = 0; col < GRID_COLS; col++) {
@@ -87,37 +87,37 @@ function detectJackpot(
     }
 
     const symbolValue = symbolValues[firstSymbol] || 1;
-    const baseMultiplier = comboMultipliers[jackpotCombo.id] || jackpotCombo.baseMultiplier;
+    const baseMultiplier = connectionMultipliers[jackpotConnection.id] || jackpotConnection.baseMultiplier;
     const tokensGained = Math.floor(symbolValue * baseMultiplier);
 
-    allCombos.push({
-      comboType: jackpotCombo.id,
-      comboName: jackpotCombo.displayName,
+    allConnections.push({
+      comboType: jackpotConnection.id,
+      comboName: jackpotConnection.displayName,
       symbolId: firstSymbol,
       positions,
-      baseMultiplier: jackpotCombo.baseMultiplier,
+      baseMultiplier: jackpotConnection.baseMultiplier,
       finalMultiplier: baseMultiplier,
       tokensGained,
     });
   }
 
-  return allCombos;
+  return allConnections;
 }
 
 /**
- * Detect a specific combo pattern in the grid
+ * Detect a specific connection pattern in grid
  */
-function detectComboPattern(
+function detectConnectionPattern(
   grid: Grid5x3,
-  combo: Combination,
+  connection: Connection,
   availability: boolean[][],
   symbolValues: Record<string, number>,
-  comboMultipliers: Record<string, number>
+  connectionMultipliers: Record<string, number>
 ): DetectedCombo[] {
   const matches: DetectedCombo[] = [];
 
-  // Get all possible pattern instances for this combo type
-  const patterns = generatePatternsForCombo(combo);
+  // Get all possible pattern instances for this connection type
+  const patterns = generatePatternsForConnection(connection);
 
   for (const pattern of patterns) {
     // Check if this pattern matches
@@ -126,15 +126,15 @@ function detectComboPattern(
     if (match) {
       const { symbolId, positions } = match;
       const symbolValue = symbolValues[symbolId] || 1;
-      const baseMultiplier = comboMultipliers[combo.id] || combo.baseMultiplier;
+      const baseMultiplier = connectionMultipliers[connection.id] || connection.baseMultiplier;
       const tokensGained = Math.floor(symbolValue * baseMultiplier);
 
       matches.push({
-        comboType: combo.id,
-        comboName: combo.displayName,
+        comboType: connection.id,
+        comboName: connection.displayName,
         symbolId,
         positions,
-        baseMultiplier: combo.baseMultiplier,
+        baseMultiplier: connection.baseMultiplier,
         finalMultiplier: baseMultiplier,
         tokensGained,
       });
@@ -148,7 +148,7 @@ function detectComboPattern(
 }
 
 /**
- * Check if a pattern matches in the grid
+ * Check if a pattern matches in grid
  */
 function checkPattern(
   grid: Grid5x3,
@@ -160,7 +160,7 @@ function checkPattern(
     return null;
   }
 
-  // Check if all positions have the same symbol (or wild)
+  // Check if all positions have same symbol (or wild)
   const firstSymbol = grid[positions[0][0]][positions[0][1]];
   const wildSymbol = "W";
 
@@ -188,13 +188,13 @@ function checkPattern(
 }
 
 /**
- * Generate all possible pattern instances for a combo type
+ * Generate all possible pattern instances for a connection type
  */
-function generatePatternsForCombo(combo: Combination): Position[][] {
+function generatePatternsForConnection(connection: Connection): Position[][] {
   const patterns: Position[][] = [];
 
-  // Handle specific combo types
-  switch (combo.id) {
+  // Handle specific connection types
+  switch (connection.id) {
     case "H3":
       // Horizontal 3: sliding window across each row
       for (let row = 0; row < GRID_ROWS; row++) {
@@ -343,8 +343,8 @@ function generatePatternsForCombo(combo: Combination): Position[][] {
 
     default:
       // Use pattern from config if available
-      if (combo.pattern && combo.pattern.length > 0) {
-        patterns.push(combo.pattern as Position[]);
+      if (connection.pattern && connection.pattern.length > 0) {
+        patterns.push(connection.pattern as Position[]);
       }
   }
 
@@ -352,15 +352,14 @@ function generatePatternsForCombo(combo: Combination): Position[][] {
 }
 
 /**
- * Check if grid has any winning combo
+ * Check if grid has any winning connection
  */
-export function hasWinningCombo(
+export function hasWinningConnection(
   grid: Grid5x3,
-  combosConfig: Combination[],
+  connectionsConfig: Connection[],
   symbolValues: Record<string, number>,
-  comboMultipliers: Record<string, number>
+  connectionMultipliers: Record<string, number>
 ): boolean {
-  const combos = detectCombos(grid, combosConfig, symbolValues, comboMultipliers);
-  return combos.length > 0;
+  const connections = detectConnections(grid, connectionsConfig, symbolValues, connectionMultipliers);
+  return connections.length > 0;
 }
-

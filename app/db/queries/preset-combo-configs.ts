@@ -1,7 +1,7 @@
 import { getDb } from "../client";
 import {
   presetComboConfigs,
-  combinations,
+  connections,
   NewPresetComboConfig,
   PresetComboConfig,
 } from "../schema";
@@ -9,17 +9,17 @@ import { eq, and } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 /**
- * Récupère toutes les configs de combos pour un preset donné
+ * Récupère toutes les configs de connexions pour un preset donné
  */
 export async function getPresetComboConfigs(presetId: string) {
   const db = await getDb();
   return await db
     .select({
       config: presetComboConfigs,
-      combo: combinations,
+      combo: connections,
     })
     .from(presetComboConfigs)
-    .leftJoin(combinations, eq(presetComboConfigs.comboId, combinations.id))
+    .leftJoin(connections, eq(presetComboConfigs.comboId, connections.id))
     .where(eq(presetComboConfigs.presetId, presetId));
 }
 
@@ -106,16 +106,16 @@ export async function deletePresetComboConfigs(presetId: string) {
 }
 
 /**
- * Initialise les configs de combos pour un preset (copie des valeurs par défaut)
+ * Initialise les configs de connexions pour un preset (copie des valeurs par défaut)
  */
 export async function initializePresetComboConfigs(presetId: string) {
   const db = await getDb();
-  const allCombos = await db.select().from(combinations);
+  const allConnections = await db.select().from(connections);
 
-  for (const combo of allCombos) {
-    await upsertPresetComboConfig(presetId, combo.id, {
-      multiplier: combo.baseMultiplier,
-      isActive: combo.isActive,
+  for (const connection of allConnections) {
+    await upsertPresetComboConfig(presetId, connection.id, {
+      multiplier: connection.baseMultiplier,
+      isActive: connection.isActive,
     });
   }
 

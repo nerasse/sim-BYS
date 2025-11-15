@@ -1,29 +1,29 @@
 import { getDb } from "../client";
-import { combinations } from "../schema";
+import { connections } from "../schema";
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
-export async function getAllCombinations() {
+export async function getAllConnections() {
   const db = await getDb();
-  return db.select().from(combinations).orderBy(combinations.detectionOrder);
+  return db.select().from(connections).orderBy(connections.detectionOrder);
 }
 
-export async function getActiveCombinations() {
+export async function getActiveConnections() {
   const db = await getDb();
   return db
     .select()
-    .from(combinations)
-    .where(eq(combinations.isActive, true))
-    .orderBy(combinations.detectionOrder);
+    .from(connections)
+    .where(eq(connections.isActive, true))
+    .orderBy(connections.detectionOrder);
 }
 
-export async function getCombinationById(id: string) {
+export async function getConnectionById(id: string) {
   const db = await getDb();
-  const result = await db.select().from(combinations).where(eq(combinations.id, id));
+  const result = await db.select().from(connections).where(eq(connections.id, id));
   return result[0];
 }
 
-export async function createCombination(data: {
+export async function createConnection(data: {
   name: string;
   displayName: string;
   description?: string;
@@ -32,11 +32,11 @@ export async function createCombination(data: {
   isActive?: boolean;
 }) {
   const db = await getDb();
-  const allCombos = await getAllCombinations();
-  const maxOrder = Math.max(0, ...allCombos.map(c => c.detectionOrder));
+  const allConnections = await getAllConnections();
+  const maxOrder = Math.max(0, ...allConnections.map(c => c.detectionOrder));
   
-  const [combo] = await db
-    .insert(combinations)
+  const [connection] = await db
+    .insert(connections)
     .values({
       id: nanoid(),
       name: data.name,
@@ -48,10 +48,10 @@ export async function createCombination(data: {
       detectionOrder: maxOrder + 1,
     })
     .returning();
-  return combo;
+  return connection;
 }
 
-export async function updateCombination(
+export async function updateConnection(
   id: string,
   data: {
     name?: string;
@@ -71,16 +71,16 @@ export async function updateCombination(
   if (data.baseMultiplier !== undefined) updateData.baseMultiplier = data.baseMultiplier;
   if (data.isActive !== undefined) updateData.isActive = data.isActive;
   
-  const [combo] = await db
-    .update(combinations)
+  const [connection] = await db
+    .update(connections)
     .set(updateData)
-    .where(eq(combinations.id, id))
+    .where(eq(connections.id, id))
     .returning();
-  return combo;
+  return connection;
 }
 
-export async function deleteCombination(id: string) {
+export async function deleteConnection(id: string) {
   const db = await getDb();
-  await db.delete(combinations).where(eq(combinations.id, id));
+  await db.delete(connections).where(eq(connections.id, id));
 }
 

@@ -29,19 +29,19 @@ export async function action({ request }: ActionFunctionArgs) {
 /                          - Sélection preset (home + accès config via bouton)
 /config                    - Layout config avec sidebar (accès via home ou icône ⚙️)
 /config/symbols            - Config symboles du preset actif
-/config/combos             - Config combinaisons du preset actif
+/config/combos             - Config connexions du preset actif
 /config/levels             - Config niveaux du preset actif
 /config/shop-rarities      - Config raretés boutique du preset actif
 /config/preset-settings    - Paramètres preset + lien sous-preset
 /effects                   - ⚡ Bibliothèque effets (lecture seule, hard-codés)
 /resources/symbols         - Bibliothèque symboles (lecture seule, hard-codés)
-/resources/combinations    - Bibliothèque combos (CRUD)
+/resources/connections     - Bibliothèque connexions (CRUD)
 /resources/bonuses         - Bibliothèque bonus (CRUD avec dropdown effets)
 /resources/jokers          - Bibliothèque jokers (CRUD avec dropdown effets)
 
 **Organisation du menu** :
 - **Éléments hard-codés** : Effets, Symboles (accès direct depuis menu principal)
-- **Ressources modifiables** : Combos, Bonus, Jokers, Personnages, Niveaux (dropdown "Ressources")
+- **Ressources modifiables** : Connexions, Bonus, Jokers, Personnages, Niveaux (dropdown "Ressources")
 /resources/characters      - Bibliothèque personnages (CRUD avec dropdown effets)
 /resources/levels          - Bibliothèque niveaux (CRUD)
 /resources/object-selections - Sous-presets objets (CRUD)
@@ -109,7 +109,7 @@ export async function action({ request }: ActionFunctionArgs) {
 **Action** : `upsertPresetComboConfig()`
 
 **Display** :
-- **Formulaire par combo** : Multiplicateur, Activer/Désactiver
+- **Formulaire par connexion** : Multiplicateur, Activer/Désactiver
 - Édition du **preset actif uniquement**
 
 ---

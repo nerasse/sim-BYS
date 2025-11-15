@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs, MetaFunction, ActionFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useLoaderData, useFetcher } from "@remix-run/react";
-import { getAllCombinations, createCombination, updateCombination, deleteCombination } from "~/db/queries/combos";
+import { getAllConnections, createConnection, updateConnection, deleteConnection } from "~/db/queries/connections";
 import { PageHeader } from "~/components/layout/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
@@ -14,14 +14,14 @@ import { useState } from "react";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "Combinaisons - Ressources - Simulateur BYS" },
-    { name: "description", content: "Bibliothèque globale des combinaisons" },
+    { title: "Connexions - Ressources - Simulateur BYS" },
+    { name: "description", content: "Bibliothèque globale des connexions" },
   ];
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const combinations = await getAllCombinations();
-  return json({ combinations });
+  const connections = await getAllConnections();
+  return json({ connections });
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -37,7 +37,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return json({ success: false, error: "Invalid pattern JSON" });
     }
 
-    await createCombination({
+    await createConnection({
       name: formData.get("name") as string,
       displayName: formData.get("displayName") as string,
       description: formData.get("description") as string || undefined,
@@ -57,7 +57,7 @@ export async function action({ request }: ActionFunctionArgs) {
       return json({ success: false, error: "Invalid pattern JSON" });
     }
 
-    await updateCombination(formData.get("id") as string, {
+    await updateConnection(formData.get("id") as string, {
       name: formData.get("name") as string,
       displayName: formData.get("displayName") as string,
       description: formData.get("description") as string || undefined,
@@ -69,7 +69,7 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 
   if (intent === "delete") {
-    await deleteCombination(formData.get("id") as string);
+    await deleteConnection(formData.get("id") as string);
     return json({ success: true });
   }
 
@@ -77,7 +77,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function ResourcesCombinations() {
-  const { combinations } = useLoaderData<typeof loader>();
+  const { connections } = useLoaderData<typeof loader>();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
@@ -85,8 +85,8 @@ export default function ResourcesCombinations() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <PageHeader
-          title="Combinaisons"
-          description="Bibliothèque globale des combinaisons disponibles dans le jeu"
+          title="Connexions"
+          description="Bibliothèque globale des connexions disponibles dans le jeu"
         />
         <Button onClick={() => setShowCreateForm(true)}>
           <Plus className="w-4 h-4 mr-2" />
@@ -102,18 +102,18 @@ export default function ResourcesCombinations() {
       )}
 
       <div className="border rounded-lg divide-y">
-        {combinations.map((combo) => (
-          <div key={combo.id}>
-            {editingId === combo.id ? (
+        {connections.map((connection) => (
+          <div key={connection.id}>
+            {editingId === connection.id ? (
               <ComboForm
-                combo={combo}
+                combo={connection}
                 onCancel={() => setEditingId(null)}
                 intent="update"
               />
             ) : (
               <ComboListItem
-                combo={combo}
-                onEdit={() => setEditingId(combo.id)}
+                combo={connection}
+                onEdit={() => setEditingId(connection.id)}
               />
             )}
           </div>
@@ -127,7 +127,7 @@ function ComboListItem({ combo, onEdit }: { combo: any; onEdit: () => void }) {
   const fetcher = useFetcher();
 
   const handleDelete = () => {
-    if (confirm(`Supprimer la combinaison "${combo.displayName}" ?`)) {
+    if (confirm(`Supprimer la connexion "${combo.displayName}" ?`)) {
       fetcher.submit(
         { intent: "delete", id: combo.id },
         { method: "post" }
@@ -215,7 +215,7 @@ function ComboForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{intent === "create" ? "Nouvelle combinaison" : "Modifier"}</CardTitle>
+        <CardTitle>{intent === "create" ? "Nouvelle connexion" : "Modifier"}</CardTitle>
       </CardHeader>
       <CardContent>
         <fetcher.Form

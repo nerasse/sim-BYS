@@ -3,7 +3,7 @@ import * as schema from "../schema";
 import { seedEffectTargets } from "./effect-targets.seed";
 import { seedEffects } from "./effects.seed";
 import { symbolsData } from "./symbols.seed";
-import { combosData } from "./combos.seed";
+import { combosData } from "./connections.seed";
 import { bonusesData } from "./bonuses.seed";
 import { jokersData } from "./jokers.seed";
 import { charactersData } from "./characters.seed";
@@ -41,7 +41,7 @@ async function seed() {
     await db.delete(schema.characters);
     await db.delete(schema.jokers);
     await db.delete(schema.bonuses);
-    await db.delete(schema.combinations);
+    await db.delete(schema.connections);
     await db.delete(schema.symbols);
     await db.delete(schema.effects);
     await db.delete(schema.effectTargets);
@@ -58,9 +58,9 @@ async function seed() {
     console.log("📊 Inserting symbols...");
     await db.insert(schema.symbols).values(symbolsData);
 
-    // Insert combinations
-    console.log("🎯 Inserting combinations...");
-    await db.insert(schema.combinations).values(combosData);
+    // Insert connections
+    console.log("🎯 Inserting connections...");
+    await db.insert(schema.connections).values(combosData);
 
     // Insert bonuses
     console.log("🎁 Inserting bonuses...");
@@ -99,7 +99,7 @@ async function seed() {
       totalRuns: 0,
       globalSuccessRate: 0,
       symbolFrequencies: {},
-      comboFrequencies: {},
+      connectionFrequencies: {},
     });
 
     // Create default preset and set it as active

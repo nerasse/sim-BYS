@@ -8,7 +8,7 @@ import type {
   SimulationStats,
 } from "./types";
 import { generateGrid, applyWildSymbols } from "./core/grid-generator";
-import { detectCombos } from "./core/combo-detector";
+import { detectConnections } from "./core/connection-detector";
 import { calculateGains, calculateInterest } from "./core/calculator";
 import { applyBonusEffects } from "./game-logic/bonus-applier";
 import { applyJokerEffects, sumJokerEffects } from "./game-logic/joker-applier";
@@ -38,10 +38,10 @@ export function initializeGameState(config: SimulationConfig): GameState {
     symbolMultipliers[symbol.id] = symbol.baseMultiplier;
   }
 
-  // Initialize combo multipliers
-  const comboMultipliers: Record<string, number> = {};
-  for (const combo of config.combosConfig) {
-    comboMultipliers[combo.id] = combo.baseMultiplier;
+  // Initialize connection multipliers
+  const connectionMultipliers: Record<string, number> = {};
+  for (const connection of config.connectionsConfig) {
+    connectionMultipliers[connection.id] = connection.baseMultiplier;
   }
 
   // Initial state
@@ -73,15 +73,15 @@ export function initializeGameState(config: SimulationConfig): GameState {
     symbolWeights,
     symbolValues,
     symbolMultipliers,
-    comboMultipliers,
+    connectionMultipliers,
 
     extraSpinsThisLevel: 0,
     permanentMultiplierBonus: 0,
   };
 
   // Apply character passive effect
-  if (config.character.passiveEffect.type === "chance_per_level") {
-    state.chance += config.character.passiveEffect.value;
+  if (config.character.passiveEffects[0].type === "chance_per_level") {
+    state.chance += config.character.passiveEffects[0].value;
   }
 
   // Apply starting bonus and joker effects
@@ -109,26 +109,26 @@ export function executeSpin(
     grid = applyWildSymbols(grid, modifiedState.wildSymbolsCount);
   }
 
-  // Detect combos
-  const combos = detectCombos(
+  // Detect connections
+  const connections = detectConnections(
     grid,
-    config.combosConfig,
+    config.connectionsConfig,
     modifiedState.symbolValues,
-    modifiedState.comboMultipliers
+    modifiedState.connectionMultipliers
   );
 
   // Calculate tokens gained
-  const tokensGained = calculateGains(combos, modifiedState);
+  const tokensGained = calculateGains(connections, modifiedState);
 
   // Check if bonus triggered (if grid contains bonus symbol)
   const bonusTriggered = grid.flat().some((symbol) => symbol === "B");
 
   return {
     grid,
-    combosDetected: combos,
+    combosDetected: connections,
     tokensGained,
     bonusTriggered,
-    isWinning: combos.length > 0,
+    isWinning: connections.length > 0,
   };
 }
 
@@ -141,8 +141,8 @@ export async function runSimulation(config: SimulationConfig): Promise<Simulatio
   const stats: SimulationStats = {
     totalSpins: 0,
     winningSpins: 0,
-    totalCombos: 0,
-    comboFrequency: {},
+    totalConnections: 0,
+    connectionFrequency: {},
     symbolFrequency: {},
     averageTokensPerSpin: 0,
     maxTokensInSingleSpin: 0,
@@ -181,16 +181,16 @@ export async function runSimulation(config: SimulationConfig): Promise<Simulatio
         stats.winningSpins++;
       }
 
-      stats.totalCombos += spinResult.combosDetected.length;
+      stats.totalConnections += spinResult.combosDetected.length;
       stats.maxTokensInSingleSpin = Math.max(
         stats.maxTokensInSingleSpin,
         spinResult.tokensGained
       );
 
       // Track frequencies
-      for (const combo of spinResult.combosDetected) {
-        stats.comboFrequency[combo.comboType] =
-          (stats.comboFrequency[combo.comboType] || 0) + 1;
+      for (const connection of spinResult.combosDetected) {
+        stats.connectionFrequency[connection.comboType] =
+          (stats.connectionFrequency[connection.comboType] || 0) + 1;
       }
 
       for (const row of spinResult.grid) {

@@ -62,7 +62,7 @@ Remix utilise le routing basé sur les fichiers. Chaque fichier dans `app/routes
 
 ### ⚙️ Configuration par Preset
 - **Symboles** : Poids, valeurs, multiplicateurs
-- **Combinaisons** : Multiplicateurs, actif/inactif
+- **Connexions** : Multiplicateurs, actif/inactif
 - **Niveaux** : Objectifs et récompenses
 - **Raretés boutique** : Probabilités par monde
 - **Objets par niveau** : Bonus/jokers disponibles
@@ -96,7 +96,7 @@ Remix utilise le routing basé sur les fichiers. Chaque fichier dans `app/routes
 ```
 effects             - Effets hard-codés (lecture seule, liés simulation)
 symbols             - 9 symboles (basiques, premium, bonus)
-combinations        - 11 types de combos
+connections         - 11 types de connexions
 bonuses             - 16 bonus (4 départ + 12 partie)
 jokers              - 25+ jokers avec effets
 characters          - Personnages (effets passifs + bonus départ multiples)
@@ -107,7 +107,7 @@ characters          - Personnages (effets passifs + bonus départ multiples)
 presets                    - Métadonnées des presets
 activePreset               - Preset actuellement actif (1 ligne)
 presetSymbolConfigs        - Config symboles par preset
-presetComboConfigs         - Config combos par preset
+presetComboConfigs         - Config connexions par preset
 presetLevelConfigs         - Config niveaux par preset
 presetShopRarityConfigs    - Config raretés par preset
 presetBonusAvailability    - Bonus disponibles par niveau
@@ -135,9 +135,9 @@ shopRarityConfigs   - Configs raretés globales (cache)
 /presets                           - Gestion presets (liste)
 /resources/object-selections       - Sélections objets (liste)
 /resources/object-selections/:id   - Config objets par niveau
-/config/*                          - Config preset (symboles, combos, niveaux, shop, settings)
+/config/*                          - Config preset (symboles, connexions, niveaux, shop, settings)
 /effects                           - Bibliothèque effets (lecture seule)
-/resources/*                       - Bibliothèques (symboles, combos, bonus, jokers, personnages, niveaux)
+/resources/*                       - Bibliothèques (symboles, connexions, bonus, jokers, personnages, niveaux)
 /simulator                         - Simulation preset actif
 /stats                             - Stats par preset
 ```
@@ -156,7 +156,7 @@ shopRarityConfigs   - Configs raretés globales (cache)
 ```
 1. Accès config via bouton "Configurer" ou icône ⚙️ navbar
 2. Ajuster poids symboles (/config/symbols)
-3. Modifier multiplicateurs combos (/config/combos)
+3. Modifier multiplicateurs connexions (/config/combos)
 4. Tweaker objectifs de niveaux (/config/levels)
 5. Ajuster probabilités boutique (/config/shop-rarities)
 ```

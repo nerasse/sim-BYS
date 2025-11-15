@@ -94,8 +94,8 @@ function applySingleBonus(
         break;
 
       case "increase_combo_multiplier":
-        for (const combo of Object.keys(state.comboMultipliers)) {
-          state.comboMultipliers[combo] += value;
+        for (const connection of Object.keys(state.connectionMultipliers)) {
+          state.connectionMultipliers[connection] += value;
         }
         break;
 

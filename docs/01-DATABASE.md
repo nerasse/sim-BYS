@@ -46,7 +46,7 @@ L'application utilise une architecture **centrée sur les presets**. Chaque pres
 ```
 **Usage** : Bibliothèque de symboles hard-codés (lecture seule). Valeurs par défaut copiées dans les presets.
 
-#### `combinations` (11 types)
+#### `connections` (11 types)
 ```typescript
 {
   id: string (PK)
@@ -59,7 +59,7 @@ L'application utilise une architecture **centrée sur les presets**. Chaque pres
   description: string
 }
 ```
-**Usage** : Bibliothèque de combos. Configs copiées dans les presets.
+**Usage** : Bibliothèque de connexions. Configs copiées dans les presets.
 
 #### `bonuses` (16 total)
 ```typescript
@@ -308,7 +308,7 @@ L'application utilise une architecture **centrée sur les presets**. Chaque pres
   totalRuns: number
   globalSuccessRate: number
   symbolFrequencies: json
-  comboFrequencies: json
+  connectionFrequencies: json
   topCharacter: string
   topBonus: string
   topJoker: string
@@ -338,7 +338,7 @@ db/queries/
 ├── object-selection-jokers.ts       - CRUD jokers sous-preset
 ├── effects.ts                       - Bibliothèque effets
 ├── symbols.ts                       - Bibliothèque symboles
-├── combos.ts                        - Bibliothèque combos
+├── connections.ts                   - Bibliothèque connexions
 ├── bonuses.ts                       - Bibliothèque bonus
 ├── jokers.ts                        - Bibliothèque jokers
 ├── characters.ts                    - Bibliothèque personnages
@@ -384,7 +384,7 @@ db/queries/
 Données initiales dans `db/seed/`:
 - `effects.seed.ts` - 13 effets de base (inclut 2 effets trigger d'obtention)
 - `symbols.seed.ts` - 9 symboles
-- `combos.seed.ts` - 11 combinaisons
+- `connections.seed.ts` - 11 connexions
 - `bonuses.seed.ts` - 16 bonus
 - `jokers.seed.ts` - 25+ jokers
 - `characters.seed.ts` - 3 personnages

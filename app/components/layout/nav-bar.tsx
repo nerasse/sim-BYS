@@ -1,7 +1,7 @@
 import { Link, useFetcher, useNavigate } from "@remix-run/react";
 import { useEffect } from "react";
 import { cn } from "~/lib/utils";
-import { Home, Settings, Gamepad2, TrendingUp, Save, Database, ChevronDown, Zap } from "lucide-react";
+import { Home, Settings, Gamepad2, TrendingUp, Save, Database, ChevronDown, Zap, Grid3X3 } from "lucide-react";
 import { Badge } from "~/components/ui/badge";
 import {
   DropdownMenu,
@@ -13,7 +13,6 @@ import { Button } from "~/components/ui/button";
 import type { Preset } from "~/db/schema";
 
 const resourceItems = [
-  { href: "/resources/symbols", label: "Symboles" },
   { href: "/resources/combinations", label: "Combinaisons" },
   { href: "/resources/bonuses", label: "Bonus" },
   { href: "/resources/jokers", label: "Jokers" },
@@ -70,18 +69,6 @@ export function NavBar({ activePreset, allPresets }: NavBarProps) {
                 Accueil
               </Link>
               
-              {/* Effets */}
-              <Link
-                to="/effects"
-                className={cn(
-                  "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
-                  "hover:bg-accent hover:text-accent-foreground"
-                )}
-              >
-                <Zap className="w-4 h-4" />
-                Effets
-              </Link>
-
               {/* Ressources Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -95,6 +82,26 @@ export function NavBar({ activePreset, allPresets }: NavBarProps) {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-56">
+                  {/* Éléments hard-codés */}
+                  <DropdownMenuItem asChild>
+                    <Link to="/effects" className="cursor-pointer flex items-center gap-2">
+                      <Zap className="w-4 h-4" />
+                      Effets
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/resources/symbols" className="cursor-pointer flex items-center gap-2">
+                      <Grid3X3 className="w-4 h-4" />
+                      Symboles
+                    </Link>
+                  </DropdownMenuItem>
+                  
+                  {/* Séparateur */}
+                  <DropdownMenuItem disabled className="cursor-default">
+                    <div className="w-full border-t border-border my-1" />
+                  </DropdownMenuItem>
+                  
+                  {/* Éléments modifiables */}
                   {resourceItems.map((item) => (
                     <DropdownMenuItem key={item.href} asChild>
                       <Link to={item.href} className="cursor-pointer">

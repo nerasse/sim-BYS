@@ -38,6 +38,10 @@ export async function action({ request }: ActionFunctionArgs) {
 /resources/combinations    - Bibliothèque combos (CRUD)
 /resources/bonuses         - Bibliothèque bonus (CRUD avec dropdown effets)
 /resources/jokers          - Bibliothèque jokers (CRUD avec dropdown effets)
+
+**Organisation du menu** :
+- **Éléments hard-codés** : Effets, Symboles (accès direct depuis menu principal)
+- **Ressources modifiables** : Combos, Bonus, Jokers, Personnages, Niveaux (dropdown "Ressources")
 /resources/characters      - Bibliothèque personnages (CRUD avec dropdown effets)
 /resources/levels          - Bibliothèque niveaux (CRUD)
 /resources/object-selections - Sous-presets objets (CRUD)
@@ -280,14 +284,17 @@ const [
 
 ### NavBar
 ```
-[Accueil] [Effets] [Ressources▼] | [Sélections] | [Presets] | [Simulateur] [Stats] [Preset: X ▼] [⚙️]
+[Accueil] [Ressources▼] | [Sélections] | [Presets] | [Simulateur] [Stats] [Preset: X ▼] [⚙️]
 ```
 
 **Structure** :
-- **Bibliothèques** : Accueil, Effets, Ressources▼ (Symboles, Combos, Bonus, Jokers, Personnages, Niveaux)
+- **Éléments hard-codés (lecture seule)** dans dropdown : Effets (⚡), Symboles (⊞)
+- **Éléments modifiables (CRUD)** dans dropdown : Combos, Bonus, Jokers, Personnages, Niveaux
 - **Gestion** : Sélections (disponibilité objets), Presets (configs)
 - **Utilisation** : Simulateur, Stats
 - **⚙️** : Config preset actif → /config
+
+**Note** : Le dropdown "Ressources▼" contient un séparateur interne entre les éléments hard-codés et les éléments modifiables
 
 ## Styling
 

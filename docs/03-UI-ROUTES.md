@@ -34,7 +34,7 @@ export async function action({ request }: ActionFunctionArgs) {
 /config/shop-rarities      - Config raretés boutique du preset actif
 /config/preset-settings    - Paramètres preset + lien sous-preset
 /effects                   - ⚡ Bibliothèque effets (lecture seule, hard-codés)
-/resources/symbols         - Bibliothèque symboles (CRUD)
+/resources/symbols         - Bibliothèque symboles (lecture seule, hard-codés)
 /resources/combinations    - Bibliothèque combos (CRUD)
 /resources/bonuses         - Bibliothèque bonus (CRUD avec dropdown effets)
 /resources/jokers          - Bibliothèque jokers (CRUD avec dropdown effets)
@@ -150,6 +150,20 @@ export async function action({ request }: ActionFunctionArgs) {
 - **EffetSelector** mis à jour : Changement d'effet met à jour automatiquement les valeurs par défaut
 
 **Note** : Les bonus passifs ne sont pas détruits après utilisation (contrairement aux bonus actifs)
+
+---
+
+### Symboles (`resources.symbols.tsx`) **LECTURE SEULE**
+
+**Loader** : `getAllSymbols()`  
+**Actions** : Aucune (hard-codés, lecture seule)
+
+**Display** :
+- **Liste des symboles** avec badges : Nom, Type, Poids, Valeur, Multiplicateur
+- Pas de formulaire d'édition ou de création
+- Icônes et couleurs hard-codées
+
+**Note** : Les 9 symboles sont hard-codés pour préserver l'intégrité de la simulation
 
 ---
 

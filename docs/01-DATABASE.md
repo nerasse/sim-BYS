@@ -44,7 +44,7 @@ L'application utilise une architecture **centrée sur les presets**. Chaque pres
   color: string           // Couleur hex
 }
 ```
-**Usage** : Bibliothèque de symboles. Valeurs par défaut copiées dans les presets.
+**Usage** : Bibliothèque de symboles hard-codés (lecture seule). Valeurs par défaut copiées dans les presets.
 
 #### `combinations` (11 types)
 ```typescript
